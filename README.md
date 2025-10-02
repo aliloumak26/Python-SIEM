@@ -3,35 +3,35 @@ Goal: simulate a log stream (simple web app + honeypot) and detect a few basic c
 
 ## Scope / current plan
 
-Collect logs from files (access.log, honeypot_logs.log)
+# Collect logs from files (access.log, honeypot_logs.log)
 
-Simple parsing of log lines into structured objects
+# Simple parsing of log lines into structured objects
 
-Basic rule-based detection (e.g., brute-force on 401, accumulation of 404, 5xx)
+# Basic rule-based detection (e.g., brute-force on 401, accumulation of 404, 5xx)
 
-Output alerts to the console (log)
+# Output alerts to the console (log)
 
 ## How to test quickly
   /
 ## Example expected alert
 
-[ALERT] BRUTE_FORCE - 198.51.100.5 - 6 failed logins
+# [ALERT] BRUTE_FORCE - 198.51.100.5 - 6 failed logins
 
 
 ## Roadmap (progressive)
 
-V0: log generator + simple analyzer (targeted now)
+# V0: log generator + simple analyzer (targeted now)
 
-V1: add a more robust parser + local storage
+# V1: add a more robust parser + local storage
 
-V2: optional — small Flask app to produce real logs
+# V2: optional — small Flask app to produce real logs
 
-V3: integrate honeypot and better correlation rules
+# V3: integrate honeypot and better correlation rules
 
 ## Security notes
 
-Educational use only.
+# Educational use only.
 
-Do not run against systems or networks you do not control or have authorization to test.
+# Do not run against systems or networks you do not control or have authorization to test.
 
-The honeypot must log only metadata (IP, port, timestamp).
+# The honeypot must log only metadata (IP, port, timestamp).
