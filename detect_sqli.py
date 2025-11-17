@@ -17,10 +17,12 @@ PATTERNS = [
     r"or\s+true",
     r"or\s+false",
     
+    
     # SELECT patterns
     r"select\s+\*?\s+from",
     r"select.*from.*where",
     r"select.*as",
+    
     
     # UNION attacks
     r"union\s+select",
