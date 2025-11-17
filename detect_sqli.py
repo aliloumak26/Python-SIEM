@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 import os
 import time
 from urllib.parse import unquote
@@ -108,7 +108,7 @@ def check_line(line):
     return False, None
 
 def main():
-    print("🚀 Python Watcher démarré - surveillance de access.log...")
+    print("Python Watcher has started - monitoring access.log...")
     print("=" * 60)
     
     last_position = 0
@@ -127,9 +127,9 @@ def main():
                 is_sqli, pattern = check_line(line)
                 
                 if is_sqli:
-                    print(f"⚠️  ALERTE SQLi DÉTECTÉE!")
-                    print(f"   Pattern: {pattern}")
-                    print(f"   Ligne: {line.strip()}")
+                    print(f"-ALERT- SQL Injection detected !")
+                    print(f" Pattern: {pattern}")
+                    print(f" Line: {line.strip()}")
                     print("-" * 60)
                     
                     with open("alerts.log", "a", encoding="utf-8") as f:
@@ -138,7 +138,7 @@ def main():
             time.sleep(0.5)
         
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"Error: {e}")
             time.sleep(1)
 
 if __name__ == "__main__":
