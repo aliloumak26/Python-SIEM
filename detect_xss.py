@@ -1,133 +1,100 @@
+#!/usr/bin/env python3
 import os
-from urllib.parse import unquote_plus
+import time
+from urllib.parse import unquote
+import re
 
-LOG_PATH = os.environ.get("LOG_PATH", r"C:\Users\Pc\Documents\Organigramme-Info\Web-Dev-Backend\access.log")
-# ---------- PATTERNS XSS ----------
-# motifs simples qu'on va chercher dans la requête décodée
+LOG_PATH = os.environ.get(
+    "LOG_PATH",
+    r"C:\Users\HP\Web-Dev-Backend\access.log"
+)
+
+# ----------------- XSS PATTERNS -----------------
 PATTERNS = [
-    "<script",          
-    "javascript:",      
-    "onerror=",        
-    "onload=",          
-    "onclick=",         
-    "onmouseover=",
-    "alert(",           
-    "document.cookie", 
-    "document.write",
-    "innerhtml",       
-    "eval(",          
-    "<img",            
-    "<svg",             
-    "<iframe",      
-    "srcdoc=",          
-    "<body",            
-    "<meta",            
-    "</script>",        
+    # HTML/JS tags
+    r"<script",
+    r"</script",
+    r"<img",
+    r"<svg",
+    r"<iframe",
+    r"<body",
+    r"<meta",
+    r"srcdoc=",
+
+    # JS schemes
+    r"javascript:",
+    r"data:text/html",
+    
+    # Event handlers
+    r"onerror=",
+    r"onload=",
+    r"onclick=",
+    r"onmouseover=",
+    r"onfocus=",
+    r"oninput=",
+
+    # JS functions
+    r"alert\(",
+    r"prompt\(",
+    r"confirm\(",
+    r"document\.cookie",
+    r"document\.write",
+    r"innerhtml",
+    r"eval\(",
 ]
-# ---------- PARSING ----------
 
-def parse_line(line):
-    # si c'est déjà un dict retourné 
-    if isinstance(line, dict):
-        return line
-    #else
-    parts = line.strip().split(" - ")
-    if len(parts) < 5:
-     # si c'est pas le bon format, on skip
-        return None
-    
-    ts = parts[0].strip()
-    ip = parts[1].strip()
-    req = parts[2].strip()
-    status = parts[3].strip()
-    duration = parts[4].strip()
-    tokens = req.split(" ", 1)
-    method = tokens[0]
-    path = tokens[1] if len(tokens) > 1 else ""
-
-    # on renvoie un dict standard pour travailler proprement
-    return {
-        "ts": ts,
-        "ip": ip,
-        "method": method,
-        "path": path,
-        "status": status,
-        "duration": duration,
-        "raw": line.strip()
-    }
-   # ---------- NORMALISATION ----------
-    
 def normalize(s: str) -> str:
-    """Décodage URL + lowercase + strip. Retourne '' si rien."""
     if not s:
         return ""
     try:
-        return unquote(s).lower().strip()
-    except Exception:
+        decoded = unquote(s)
+        decoded = decoded.replace('\\"', '"').replace("\\'", "'").replace('\\', '')
+        return decoded.lower().strip()
+    except:
+        return str(s).lower().strip()
+
+def check_line(line):
+    normalized = normalize(line)
+    for pattern in PATTERNS:
+        if re.search(pattern, normalized, re.IGNORECASE):
+            return True, pattern
+    return False, None
+
+def main():
+    print("🚀 XSS Watcher started — monitoring access.log...")
+    print("=" * 60)
+
+    last_position = 0
+    while True:
         try:
-            return s.lower().strip()
-        except Exception:
-            return ""
-        
-# ---------- ALERTE ---------- 
-     
-def alert(entry, reason):
-    ts = entry.get("ts", "Z")
-    ip = entry.get("ip", "")
-    method = entry.get("method", "")
-    path = entry.get("path", "")
-    msg = f"{ts} - ALERT XSS - {ip} - {method} {path} - {reason}"
-    print(msg)  
-    
- # ---------- DETECTION XSS ----------
-    
-def detect_xss(entry):
-    """
-     Retourne True si on détecte un pattern XSS, False sinon, None si ligne invalide.
-    """
-    entry = parse_line(entry)
-    if not entry:
-        return None
+            if not os.path.exists(LOG_PATH):
+                time.sleep(1)
+                continue
 
+            with open(LOG_PATH, "r", encoding="utf-8") as f:
+                f.seek(last_position)
+                new_lines = f.readlines()
+                last_position = f.tell()
 
-    path = normalize(entry.get("path"))
+            for line in new_lines:
+                is_xss, pattern = check_line(line)
 
-    # check rapide pour chercher les patterns
-    for p in PATTERNS:
-        if p in path:
-            alert(entry, f"pattern_string:{p}")
-            return True
+                if is_xss:
+                    print("⚠️  XSS ATTACK DETECTED!")
+                    print(f"   Pattern: {pattern}")
+                    print(f"   Line: {line.strip()}")
+                    print("-" * 60)
 
-    
-    try:
+                    with open("alerts.log", "a", encoding="utf-8") as f:
+                        f.write(f"XSS DETECTED - Pattern: {pattern} - {line.strip()}\n")
 
-        if "?" in path:
-            _, qs = path.split("?", 1)
-        
-            for pair in qs.split("&"):
-                if "=" in pair:
-                    k, v = pair.split("=", 1)
-                    nv = normalize(v)
-                    for p in PATTERNS:
-                        if p in nv:
-                            alert(entry, f"pattern_param:{p} (param:{k})")
-                            return True
-                else:
-            
-                    nv = normalize(pair)
-                    for p in PATTERNS:
-                        if p in nv:
-                            alert(entry, f"pattern_param:{p} (bare param)")
-                            return True
-    except Exception:
-        pass
+            time.sleep(0.5)
 
-    return False   
-# ---------- TEST RAPIDE ----------
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            time.sleep(1)
+
 if __name__ == "__main__":
-    # exemple vulnérable / détection XSS
-    example_line = "2025-10-20T19:00:00.000Z - 203.0.113.5 - GET /search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E - 200 - 5ms"
-    entry = parse_line(example_line)
-    print("Parsed:", entry)
-    detected = detect_xss(entry)
-    print("Detected?", detected)    
+    main()
+
+   

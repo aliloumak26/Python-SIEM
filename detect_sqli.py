@@ -6,7 +6,8 @@ import re
 
 LOG_PATH = os.environ.get(
     "LOG_PATH",
-    r"C:\Users\Pc\Documents\Organigramme-Info\Web-Dev-Backend\access.log"
+   # r"C:\Users\Pc\Documents\Organigramme-Info\Web-Dev-Backend\access.log"
+   r"C:\Users\HP\Web-Dev-Backend\access.log"
 )
 
 PATTERNS = [
