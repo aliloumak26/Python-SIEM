@@ -9,8 +9,6 @@ LOG_PATH = os.environ.get(
     r"C:\Users\HP\Web-Dev-Backend\access.log"   # Chemin vers ton access.log
 )
 
-# XSS PATTERNS
-
 PATTERNS = [
     # BALISES HTML LIEES AU XSS
     r"<script",      
@@ -43,7 +41,7 @@ PATTERNS = [
     r"><",              
     r"</\w+>",         
 ]
-# NORMALISATION
+
 def normalize(s: str) -> str:
     """
     Nettoie une ligne du log pour détecter l'attaque :
@@ -65,7 +63,6 @@ def normalize(s: str) -> str:
     except:
         return str(s).lower().strip()
 
-# DETECTION
 def check_line(line):
     normalized = normalize(line)
 
@@ -77,7 +74,7 @@ def check_line(line):
 
 
 def main():
-    print("🚀 XSS Watcher started — monitoring access.log...")
+    print(" XSS Watcher started — monitoring access.log...")
     print("=" * 60)
 
     last_position = 0
@@ -97,7 +94,7 @@ def main():
                 is_xss, pattern = check_line(line)
 
                 if is_xss:
-                    print("⚠️  XSS ATTACK DETECTED!")
+                    print(" XSS ATTACK DETECTED!")
                     print(f"   Pattern: {pattern}")
                     print(f"   Line: {line.strip()}")
                     print("-" * 60)
@@ -108,7 +105,7 @@ def main():
             time.sleep(0.5)
 
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f" Error: {e}")
             time.sleep(1)
 
 if __name__ == "__main__":
