@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 import os
 import time
 from urllib.parse import unquote
@@ -44,7 +44,7 @@ def check_line(line):
     return False, None
 
 def main():
-    print("🚀 CRLF Watcher started — monitoring access.log...")
+    print(" CRLF Watcher started — monitoring access.log...")
     print("=" * 60)
 
     last_position = 0
@@ -63,7 +63,7 @@ def main():
                 is_crlf, pattern = check_line(line)
 
                 if is_crlf:
-                    print("⚠️  CRLF INJECTION DETECTED!")
+                    print("  CRLF INJECTION DETECTED!")
                     print(f"   Pattern: {pattern}")
                     print(f"   Line: {line.strip()}")
                     print("-" * 60)
@@ -74,7 +74,7 @@ def main():
             time.sleep(0.5)
 
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f" Error: {e}")
             time.sleep(1)
 
 if __name__ == "__main__":
