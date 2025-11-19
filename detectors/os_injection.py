@@ -30,7 +30,7 @@ def detect(line):
     ]
     
     for p in patterns:
-        text = normalize()
+        text = normalize(line)
         if re.search(p, text, re.IGNORECASE):
             return True, p, "OS_command_Injection_detected"
     
