@@ -1,18 +1,12 @@
-import os
-import time
+
 import re
 from utils.normalize import normalize
 from config.settings import settings
 
 LOG_PATH = settings.ACCESS_LOG_PATH
 
-<<<<<<< HEAD
+
 PATTERNS = [
-=======
-# ----------------- OS COMMAND INJECTION PATTERNS -----------------
-PATTERNS = [
-    r";",
->>>>>>> 00a3af7d333a9ece957859fe69ef4ce0062163af
     r"&&",
     r"&",
     r"\|\|",

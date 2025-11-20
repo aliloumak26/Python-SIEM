@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 00a3af7d333a9ece957859fe69ef4ce0062163af
-import os
-import time
 from utils.normalize import normalize
 import re
 from config.settings import settings

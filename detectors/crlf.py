@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-import os
-import time
+
 from utils.normalize import normalize
 import re
 from config.settings import settings
@@ -8,7 +6,6 @@ from config.settings import settings
 
 LOG_PATH = settings.ACCESS_LOG_PATH
 
-# ----------------- CRLF INJECTION PATTERNS -----------------
 PATTERNS = [
     r"%0d%0a",
     r"%0a%0d",
@@ -31,12 +28,6 @@ PATTERNS = [
     r"%0a%0a%0d",
     r"[\r\n]+.*:",
 
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 00a3af7d333a9ece957859fe69ef4ce0062163af
 ]
 
 def detect(line):
