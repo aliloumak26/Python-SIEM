@@ -31,6 +31,12 @@ PATTERNS = [
     r"%0a%0a%0d",
     r"[\r\n]+.*:",
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 00a3af7d333a9ece957859fe69ef4ce0062163af
 ]
 
 def detect(line):

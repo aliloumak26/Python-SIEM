@@ -9,6 +9,10 @@ from detectors.xss import detect as detect_xss
 from detectors.crlf import detect as detect_crlf
 from detectors.bruteforce import detect as detect_bruteforce
 from detectors.os_injection import detect as detect_os_injection
+<<<<<<< HEAD
+=======
+
+>>>>>>> 00a3af7d333a9ece957859fe69ef4ce0062163af
 
 DETECTORS = [
     detect_sqli,
