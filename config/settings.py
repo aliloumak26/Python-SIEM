@@ -1,14 +1,12 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  
 
 class Settings:
-    ACCESS_LOG_PATH = os.environ.get(
-        "ACCESS_LOG_PATH",
-        r"C:\Users\sramz\Desktop\PFC\backend-project\access.log"
-    )
-    ALERTS_LOG_PATH = os.environ.get(
-        "ALERTS_LOG_PATH",
-        "logs/alerts.log"
-    )
-    SLEEP_INTERVAL = float(os.environ.get("SLEEP_INTERVAL", 0.5)) 
-
+    ACCESS_LOG_PATH = os.getenv("ACCESS_LOG_PATH")
+    ALERTS_LOG_PATH = os.getenv("ALERTS_LOG_PATH")
+    SLEEP_INTERVAL = float(os.getenv("SLEEP_INTERVAL", 0.5))
+    FERNET_KEY = os.getenv("FERNET_KEY")
+    CHIFFRED_PATH = os.getenv("CHIFFRED_PATH")
 settings = Settings()

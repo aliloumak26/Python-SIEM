@@ -11,14 +11,12 @@ class AlertManager:
                 f.write("---- ALERT LOG ----\n")
 
     def log_alert(self, attack_type, pattern, line):
-
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"[{timestamp}] {attack_type} detected | Pattern: {pattern} | Line: {line.strip()}\n"
         with open(self.alert_log_path, "a", encoding="utf-8") as f:
             f.write(entry)
 
     def print_alert(self, attack_type, pattern, line):
-
         print("⚠️ ALERT ⚠️")
         print(f"Type    : {attack_type}")
         print(f"Pattern : {pattern}")
