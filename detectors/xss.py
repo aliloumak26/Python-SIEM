@@ -10,7 +10,6 @@ LOG_PATH = settings.ACCESS_LOG_PATH
 PATTERNS = [
 
     # --- HTML TAGS / CLASSIC XSS ---
-    r"<\s*script",
     r"</script",
     r"<img",
     r"<svg",
@@ -62,13 +61,20 @@ PATTERNS = [
     r"%3cscript",        
     r"%3c\s*svg",        
     r"&#x3c;script",       
-    r"\\x3cscript",       
+    r"\\x3cscript", 
+    r"%u003cscript",
+    r"\\u003cscript",      
     r"u003cscript",       
 
     # --- POLYGLOT ---
     r"<svg\/onload",
     r"<svg\s*onload",
+    
+     #--- JSON XSS---
+    r"\"\s*:\s*\"<script", 
+    r"{.*<script.*}", 
 ]
+
 
 def detect(line):
     text = normalize(line)
@@ -78,6 +84,6 @@ def detect(line):
         if re.search(p, text, re.IGNORECASE):
             matches.append(p)
     if matches:
-        return True, matches, text
+        return True, matches, "XSS injection"
 
     return False, None, None
