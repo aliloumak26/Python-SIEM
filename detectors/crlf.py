@@ -4,8 +4,6 @@ import re
 from config.settings import settings
 
 
-LOG_PATH = settings.ACCESS_LOG_PATH
-
 PATTERNS = [
     r"%0d%0a",
     r"%0a%0d",

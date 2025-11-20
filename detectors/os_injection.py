@@ -3,8 +3,6 @@ import re
 from utils.normalize import normalize
 from config.settings import settings
 
-LOG_PATH = settings.ACCESS_LOG_PATH
-
 
 PATTERNS = [
     r"&&",

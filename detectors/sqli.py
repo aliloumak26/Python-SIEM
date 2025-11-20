@@ -3,7 +3,6 @@ from utils.normalize import normalize
 import re
 from config.settings import settings
 
-LOG_PATH = settings.ACCESS_LOG_PATH
 
 PATTERNS = [
     # Basic SQLi
