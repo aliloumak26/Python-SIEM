@@ -5,7 +5,7 @@ def normalize(text: str) -> str:
     if not text:
         return ""
     try:
-        decoded = unquote(text) # URL decode
+        decoded = unquote(text)
         decoded =unquote(decoded)  # Pour double encodage 
         decoded = html.unescape(decoded) 
         decoded = decoded.encode('utf-8').decode('unicode_escape')
