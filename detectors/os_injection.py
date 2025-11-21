@@ -5,6 +5,7 @@ from config.settings import settings
 
 
 PATTERNS = [
+    
     r"&&",
     r"&",
     r"\|\|",
