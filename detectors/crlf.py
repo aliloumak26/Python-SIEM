@@ -20,8 +20,6 @@ PATTERNS = [
     r"set-cookie:.*\r\n",
     r"location:.*\r\n",
     r"content-length:.*\r\n",
-    r"\u000d",
-    r"\u000a",
     r"%0d%0d%0a",
     r"%0a%0a%0d",
     r"[\r\n]+.*:",
