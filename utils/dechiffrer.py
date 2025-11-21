@@ -8,10 +8,6 @@ from config.settings import settings
 key = settings.FERNET_KEY.encode()
 fernet = Fernet(key)
 
-def comparer_fichiers(f1, f2):
-    with open(f1, "rb") as a, open(f2, "rb") as b:
-        return a.read() == b.read()
-
 def dechiffrer_fichier(src):
     with open(src, "rb") as f:
         data = f.read()
