@@ -9,6 +9,7 @@ from detectors.xss import detect as detect_xss
 from detectors.crlf import detect as detect_crlf
 from detectors.bruteforce import detect as detect_bruteforce
 from detectors.os_injection import detect as detect_os_injection
+from detectors.file_upload import detect as detect_file_upload
 
 
 DETECTORS = [
@@ -17,6 +18,7 @@ DETECTORS = [
     detect_crlf,
     detect_bruteforce,
     detect_os_injection,
+    detect_file_upload,
 ]
 
 alert_manager = AlertManager()
