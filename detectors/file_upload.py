@@ -13,9 +13,11 @@ Upload_Endpoints = [
 
 # --- Extensions dangereuses ---
 Forbidden_ext = [
-    r"\.php$", r"\.php\d$", r"\.phtml$",
+    r"\.php$", r"\.php\d$", r"\.phtml$", r"\.phar$", r"\.inc$", 
     r"\.jsp$", r"\.asp$", r"\.aspx$",
-    r"\.exe$", r"\.sh$", r"\.pl$", r"\.py$", r"\.cgi$"
+    r"\.exe$", r"\.sh$", r"\.pl$", r"\.py$", r"\.cgi$",
+    r"\.dll$", r"\.bat$", r"\.cmd$", 
+    r"\.jar$", r"\.war$",   
 ]
 
 # --- Double extensions---
