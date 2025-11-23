@@ -23,6 +23,12 @@ PATTERNS = [
     r"%0d%0d%0a",
     r"%0a%0a%0d",
     r"[\r\n]+.*:",
+    r"set-cookie:[^\r\n]*[\r\n]+",  # Meilleure détection headers
+    r"location:[^\r\n]*[\r\n]+",
+    r"content-length:[^\r\n]*[\r\n]+",
+    r"[\r\n]+(set-cookie|location|content-length):",  # Headers injectés
+    r"%0d%0aSet-Cookie:",  
+    r"%0aLocation:",
 
 ]
 
