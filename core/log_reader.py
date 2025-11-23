@@ -10,7 +10,7 @@ from detectors.crlf import detect as detect_crlf
 from detectors.bruteforce import detect as detect_bruteforce
 from detectors.os_injection import detect as detect_os_injection
 from detectors.file_upload import detect as detect_file_upload
-
+from detectors.csrf import detect as detect_csrf
 
 DETECTORS = [
     detect_sqli,
@@ -19,6 +19,7 @@ DETECTORS = [
     detect_bruteforce,
     detect_os_injection,
     detect_file_upload,
+    detect_csrf
 ]
 
 alert_manager = AlertManager()
