@@ -17,7 +17,6 @@ class AlertManager:
         if not os.path.exists(self.alert_log_path):
             with open(self.alert_log_path, "w", encoding="utf-8") as f:
                 f.write("---- ALERT LOG ----\n")
-    
     def calculate_severity(self, attack_type: str, pattern: str = None) -> str:
         """Calcule la sévérité d'une attaque"""
         critical_patterns = ['drop table', 'drop database', 'xp_cmdshell', 'exec']
@@ -92,7 +91,6 @@ class AlertManager:
         
         with open(self.alert_log_path, "a", encoding="utf-8") as f:
             f.write(entry)
-        
         return alert_id
     
     def print_alert(self, attack_type: str, pattern: str, line: str):

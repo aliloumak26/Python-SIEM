@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
-import os
-import time
+
 from utils.normalize import normalize
 import re
 from config.settings import settings
 
 
-LOG_PATH = settings.ACCESS_LOG_PATH
-
-# ----------------- CRLF INJECTION PATTERNS -----------------
 PATTERNS = [
     r"%0d%0a",
     r"%0a%0d",
@@ -22,13 +17,29 @@ PATTERNS = [
     r"\r\n",
     r"\r",
     r"\n",
+    r"set-cookie:.*\r\n",
+    r"location:.*\r\n",
+    r"content-length:.*\r\n",
+    r"%0d%0d%0a",
+    r"%0a%0a%0d",
+    r"[\r\n]+.*:",
+    r"set-cookie:[^\r\n]*[\r\n]+",  # Meilleure détection headers
+    r"location:[^\r\n]*[\r\n]+",
+    r"content-length:[^\r\n]*[\r\n]+",
+    r"[\r\n]+(set-cookie|location|content-length):",  # Headers injectés
+    r"%0d%0aSet-Cookie:",  
+    r"%0aLocation:",
+
 ]
 
 def detect(line):
     text = normalize(line)
+    matches = []
     
     for p in PATTERNS:
         if re.search(p, text, re.IGNORECASE):
-            return True, p, "CRLF Injection"
+            matches.append(p)
+    if matches:
+        return True, matches, "CRLF Injection"
 
     return False, None, None

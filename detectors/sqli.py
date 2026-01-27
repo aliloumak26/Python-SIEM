@@ -1,10 +1,8 @@
-import os
-import time
+
 from utils.normalize import normalize
 import re
 from config.settings import settings
 
-LOG_PATH = settings.ACCESS_LOG_PATH
 
 PATTERNS = [
     # Basic SQLi
@@ -89,9 +87,12 @@ PATTERNS = [
 
 def detect(line):
     text = normalize(line)
+    matches = []
     
     for p in PATTERNS:
         if re.search(p, text, re.IGNORECASE):
-            return True, p, "SQL Injection"
+            matches.append(p)
+    if matches:
+        return True, matches, "SQL Injection"
 
     return False, None, None
