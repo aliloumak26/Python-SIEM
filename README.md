@@ -135,10 +135,5 @@ SIEM/
 - Les honeypots doivent être déployés dans un environnement contrôlé
 - Ne collecte que des métadonnées (IP, timestamp, patterns)
 
-## 📝 Licence
 
-Projet éducatif - MIT License
 
----
-
-**Développé avec ❤️ pour l'apprentissage de la cybersécurité**
