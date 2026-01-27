@@ -3,11 +3,11 @@ import os
 class Settings:
     ACCESS_LOG_PATH = os.environ.get(
         "ACCESS_LOG_PATH",
-        r"C:\Users\sramz\Desktop\PFC\backend-project\access.log"
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "access.log")
     )
     ALERTS_LOG_PATH = os.environ.get(
         "ALERTS_LOG_PATH",
-        "logs/alerts.log"
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "alerts.log")
     )
     SLEEP_INTERVAL = float(os.environ.get("SLEEP_INTERVAL", 0.5)) 
 

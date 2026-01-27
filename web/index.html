@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Security Monitoring</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🛡️</span>
+            <h1>SIEM Dashboard</h1>
+        </div>
+        <div class="header-stats">
+            <div class="header-stat">
+                <div class="header-stat-value" id="headerTotal">0</div>
+                <div class="header-stat-label">Total Alerts</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-value pulse" id="headerLive">LIVE</div>
+                <div class="header-stat-label">Status</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <span class="stat-title">SQL Injection</span>
+                    <span class="stat-icon">💉</span>
+                </div>
+                <div class="stat-value" id="statSQLI">0</div>
+                <div class="stat-change">+0 today</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">XSS</span>
+                    <span class="stat-icon">⚡</span>
+                </div>
+                <div class="stat-value" id="statXSS">0</div>
+                <div class="stat-change">+0 today</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Brute Force</span>
+                    <span class="stat-icon">🔐</span>
+                </div>
+                <div class="stat-value" id="statBruteForce">0</div>
+                <div class="stat-change">+0 today</div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <span class="stat-title">Total Attacks</span>
+                    <span class="stat-icon">🎯</span>
+                </div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-change">Last 7 days</div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-section">
+            <h2 class="section-title">🌍 Attack Geolocation</h2>
+            <div id="map"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2 class="section-title">📊 Attack Types Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2 class="section-title">📈 Attack Timeline (24h)</h2>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Table -->
+        <div class="alerts-section">
+            <h2 class="section-title">🚨 Recent Alerts</h2>
+            
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="SQL Injection">SQL Injection</button>
+                <button class="filter-btn" data-filter="XSS">XSS</button>
+                <button class="filter-btn" data-filter="Brute Force">Brute Force</button>
+                <button class="filter-btn" data-filter="ML Anomaly">ML Anomaly</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="alerts-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Severity</th>
+                            <th>Type</th>
+                            <th>Source IP</th>
+                            <th>Country</th>
+                            <th>Pattern</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem;">
+                                <div class="loading"></div> Loading alerts...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/assets/js/app.js"></script>
+</body>
+</html>

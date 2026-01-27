@@ -1,37 +1,144 @@
-Educational project: a SIEM (Security Information and Event Management) in Python to learn log collection and analysis.
-Goal: simulate a log stream (simple web app + honeypot) and detect a few basic cases (failed logins, many 404s, server errors). This project is experimental and not production-ready.
+# 🛡️ SIEM Professionnel
 
-## Scope / current plan
+**Security Information and Event Management** - Système de détection et d'analyse d'attaques en temps réel avec Machine Learning et Honeypots intégrés.
 
--Collect logs from files (access.log, honeypot_logs.log)
+## ✨ Fonctionnalités
 
--Simple parsing of log lines into structured objects
+### 🤖 Machine Learning
+- Détection d'anomalies avec **Isolation Forest**
+- Feature extraction sophistiquée (entropie, patterns, caractères spéciaux)
+- Scoring de confiance pour chaque alerte
 
--Basic rule-based detection (e.g., brute-force on 401, accumulation of 404, 5xx)
+### 🍯 Honeypots Intégrés
+- **SSH Honeypot** (port 2222) - Capture les tentatives de connexion
+- **HTTP Honeypot** (port 8888) - Simule des endpoints vulnérables
+- Logging automatique dans la base de données
 
--Output alerts to the console (log)
+### 🌐 Interface Web Moderne
+- **Dashboard temps réel** avec WebSocket
+- **Carte du monde** interactive (géolocalisation des attaques)
+- **Graphiques** Chart.js (distribution, timeline)
+- **Table d'alertes** filtrables et dynamiques
+- Design **dark mode premium** avec animations
 
-## How to test quickly
-  /
-## Example expected alert
+### 🔍 Détecteurs
+- **SQL Injection** - 50+ patterns
+- **XSS** - Détection de scripts malveillants
+- **Brute Force** - Analyse de fréquence
+- **ML Anomaly** - Détection comportementale
 
--[ALERT] BRUTE_FORCE - 198.51.100.5 - 6 failed logins
+### 💾 Persistance
+- Base de données **SQLite**
+- Géolocalisation IP automatique
+- Statistiques agrégées
+- Export CSV/JSON
 
+## 📦 Installation
 
-## Roadmap (progressive)
+```bash
+# Cloner le projet
+cd SIEM
 
--V0: log generator + simple analyzer (targeted now)
+# Installer les dépendances
+pip install -r requirements.txt
 
--V1: add a more robust parser + local storage
+# Entraîner le modèle ML (première fois)
+python ml/train.py
+```
 
--V2: optional — small Flask app to produce real logs
+## 🚀 Lancement
 
--V3: integrate honeypot and better correlation rules
+```bash
+python main.py
+```
 
-## Security notes
+Le système va démarrer:
+1. ✅ Moteur SIEM (surveillance des logs)
+2. ✅ Honeypots SSH (port 2222) et HTTP (port 8888)
+3. ✅ API FastAPI + WebSocket
+4. ✅ Dashboard web (http://localhost:8000)
 
--Educational use only.
+## 🧪 Test
 
--Do not run against systems or networks you do not control or have authorization to test.
+### Générer des attaques simulées
+```bash
+# Terminal séparé
+python attacks-generator.py
+```
 
--The honeypot must log only metadata (IP, port, timestamp).
+### Tester le honeypot SSH
+```bash
+ssh root@localhost -p 2222
+```
+
+### Tester le honeypot HTTP
+```bash
+curl http://localhost:8888
+```
+
+## 📊 Endpoints API
+
+- `GET /` - Dashboard web
+- `GET /api/stats` - Statistiques globales
+- `GET /api/alerts?limit=100` - Alertes récentes
+- `GET /api/honeypot` - Logs honeypot
+- `GET /api/export/alerts?format=json` - Export
+- `WS /ws` - WebSocket temps réel
+
+## 🗂️ Structure du Projet
+
+```
+SIEM/
+├── api/                    # API FastAPI
+│   └── main.py
+├── core/                   # Moteur central
+│   ├── database.py         # SQLite
+│   ├── engine.py           # Orchestration
+│   └── alert_manager.py    # Gestion alertes
+├── detectors/              # Détecteurs d'attaques
+│   ├── sqli.py
+│   ├── xss.py
+│   └── bruteforce.py
+├── ml/                     # Machine Learning
+│   ├── anomaly_detector.py
+│   └── train.py
+├── honeypot/              # Honeypots
+│   └── ssh_honeypot.py
+├── web/                   # Interface web
+│   ├── index.html
+│   └── assets/
+│       ├── css/style.css
+│       └── js/app.js
+├── utils/                 # Utilitaires
+│   ├── geoip.py
+│   └── normalize.py
+├── config/
+│   └── settings.py
+├── main.py                # Launcher principal
+├── main_pyside6_backup.py # Ancienne GUI (backup)
+└── requirements.txt
+```
+
+## 🎯 Améliorations Futures
+
+- [ ] Classification ML multi-classe
+- [ ] Notifications email/webhook
+- [ ] Règles personnalisées (YAML)
+- [ ] Export PDF avec graphiques
+- [ ] Authentification JWT
+- [ ] Dashboard admin
+
+## ⚠️ Avertissement
+
+**Projet éducatif uniquement.**
+- Ne pas utiliser sur des systèmes/réseaux sans autorisation
+- Les honeypots doivent être déployés dans un environnement contrôlé
+- Ne collecte que des métadonnées (IP, timestamp, patterns)
+
+## 📝 Licence
+
+Projet éducatif - MIT License
+
+---
+
+**Développé avec ❤️ pour l'apprentissage de la cybersécurité**
