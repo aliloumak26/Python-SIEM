@@ -1,48 +1,29 @@
+from utils.normalize import normalize
 import re
-from utils.normalize import normalize_log
 
 def detect(log_line):
- 
-    line = normalize_log(log_line)
-
+    line = normalize(log_line)
     sensitive_methods = ["post", "put", "delete"]
+    matches = []
 
     method_match = re.search(r'"(post|put|delete)\s+([^\s]+)', line)
     if method_match:
         method = method_match.group(1)
         endpoint = method_match.group(2)
 
-
         if "csrf_token=missing" in line or "csrf=absent" in line:
-            return {
-                "attack_type": "CSRF Attack",
-                "method": method.upper(),
-                "endpoint": endpoint,
-                "description": "Sensitive action without CSRF token",
-                "log": log_line
-            }
+            matches.append(f"missing_token:{method}:{endpoint}")
+            return True, matches, "CSRF Attack"
 
-    
         if 'referer="-"' in line or "referer=absent" in line:
-            return {
-                "attack_type": "CSRF (Missing Referer)",
-                "method": method.upper(),
-                "endpoint": endpoint,
-                "description": "Sensitive request without Referer header",
-                "log": log_line
-            }
+            matches.append(f"missing_referer:{method}:{endpoint}")
+            return True, matches, "CSRF (Missing Referer)"
 
-    
         referer_match = re.search(r'referer="([^"]+)"', line)
         if referer_match:
             referer = referer_match.group(1)
             if "localhost" not in referer:
-                return {
-                    "attack_type": "Cross-Site Request Forgery",
-                    "method": method.upper(),
-                    "endpoint": endpoint,
-                    "description": f"Request coming from external site: {referer}",
-                    "log": log_line
-                }
+                matches.append(f"external_referer:{referer}")
+                return True, matches, "Cross-Site Request Forgery"
 
-    return None
+    return False, None, None

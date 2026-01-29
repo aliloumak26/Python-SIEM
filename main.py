@@ -26,6 +26,8 @@ from detectors.xss import detect as detect_xss
 from detectors.bruteforce import detect as detect_bruteforce
 from detectors.csrf import detect as detect_csrf
 from detectors.file_upload import detect as detect_file_upload
+from detectors.os_injection import detect as detect_os_injection
+from detectors.crlf import detect as detect_crlf
 
 class SIEMSystem:
     """Système SIEM complet"""
@@ -48,7 +50,7 @@ class SIEMSystem:
         
         # 1. Démarrer le moteur SIEM
         print("[1/4] Démarrage du moteur SIEM...")
-        detectors = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload]
+        detectors = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf]
         self.engine = SIEMEngine(detectors=detectors)
         self.engine.start()
         

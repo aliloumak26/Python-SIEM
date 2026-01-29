@@ -58,6 +58,10 @@ class AlertManager:
         """
         Enregistre une alerte dans la DB et le fichier de log
         """
+        # Convert list of patterns to string if necessary
+        if isinstance(pattern, list):
+            pattern = ", ".join(str(p) for p in pattern)
+            
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Extraction IP
