@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from core.database import Database
 from utils.geoip import GeoIPLocator
+from utils.chiffrer import chiffrer_donnees
 
 class SSHHoneypot:
     """Honeypot SSH basique (simulation)"""
@@ -88,6 +89,11 @@ class SSHHoneypot:
             )
             
             print(f"[Honeypot SSH] ⚠️ Connexion depuis {ip}:{port} ({geo_data.get('country', 'Unknown')})")
+            
+            # Log chiffré
+            try:
+                chiffrer_donnees(f"SSH Honeypot: Connection from {ip}:{port}")
+            except: pass
             
             # Simuler une négociation puis fermer
             time.sleep(0.5)
@@ -195,6 +201,11 @@ class HTTPHoneypot:
                 )
                 
                 print(f"[Honeypot HTTP] ⚠️ {ip} - {request_line}")
+                
+                # Log chiffré
+                try:
+                    chiffrer_donnees(f"HTTP Honeypot: {ip} - {request_line}")
+                except: pass
                 
                 # Réponse HTML basique (page de login piège)
                 response = self._generate_response(request_line)

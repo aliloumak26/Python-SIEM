@@ -13,10 +13,7 @@ ENV/
 siem.db
 *.sqlite3
 
-# Logs
-logs/*.log
-logs/access.log
-*.log
+
 
 # ML Models
 ml/*.pkl
@@ -32,5 +29,4 @@ ml/*.pkl.bak
 .DS_Store
 Thumbs.db
 
-# Project backups
-*_backup.py
+

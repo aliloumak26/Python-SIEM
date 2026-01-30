@@ -5,6 +5,7 @@ from typing import List, Callable
 from config.settings import settings
 from core.alert_manager import AlertManager
 from core.database import Database
+from utils.chiffrer import chiffrer_donnees
 
 class SIEMEngine:
     """
@@ -61,8 +62,8 @@ class SIEMEngine:
         print("[Engine] ✓ Moteur SIEM arrêté")
     
     def _watch_loop(self):
-        """Boucle principale de surveillance des logs"""
-        log_path = settings.ACCESS_LOG_PATH
+        """Boucle principale de surveillance des logs (Déchiffre les logs à la volée)"""
+        log_path = settings.CHIFFRED_PATH or "chiffred.enc"
         last_pos = 0
         
         while self.running:
@@ -71,40 +72,42 @@ class SIEMEngine:
                     time.sleep(1)
                     continue
                 
-                with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                with open(log_path, "rb") as f:
                     f.seek(last_pos)
                     
                     for line in f:
                         if not self.running:
                             break
                         
-                        stripped = line.strip()
-                        if not stripped:
+                        if not line.strip():
                             continue
                         
-                        # Passer la ligne à tous les détecteurs
-                        for detector in self.detectors:
-                            try:
-                                found, pattern, attack_type = detector(line)
+                        # Déchiffrer la ligne
+                        try:
+                            from utils.dechiffrer import dechiffrer_donnees
+                            log_line = dechiffrer_donnees(line)
+                            if not log_line: continue
+                            
+                            # Passer la ligne à tous les détecteurs
+                            for detector in self.detectors:
+                                found, pattern, attack_type = detector(log_line)
                                 
                                 if found:
                                     # Enregistrer l'alerte
-                                    alert_id = self.alert_manager.log_alert(
-                                        attack_type, pattern, line
-                                    )
+                                    self.alert_manager.log_alert(attack_type, pattern, log_line)
                                     
                                     # Récupérer l'alerte complète depuis la DB
                                     alerts = self.db.get_recent_alerts(limit=1)
                                     if alerts:
-                                        alert = alerts[0]
-                                        self.emit('new_alert', alert)
+                                        self.emit('new_alert', alerts[0])
                                     
                                     # Statistiques
-                                    stats = self.get_statistics()
-                                    self.emit('stats_update', stats)
+                                    self.emit('stats_update', self.get_statistics())
                                     
                                     # Une seule alerte par ligne
                                     break
+                        except Exception as e:
+                            print(f"[Engine] Erreur ligne: {e}")
                             
                             except Exception as e:
                                 print(f"[Engine] Erreur détecteur: {e}")

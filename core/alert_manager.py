@@ -4,6 +4,7 @@ import re
 from config.settings import settings
 from core.database import Database
 from utils.geoip import GeoIPLocator
+from utils.chiffrer import chiffrer_donnees
 
 class AlertManager:
     """Gestionnaire d'alertes avec base de données et géolocalisation"""
@@ -95,6 +96,10 @@ class AlertManager:
         
         with open(self.alert_log_path, "a", encoding="utf-8") as f:
             f.write(entry)
+            
+        # Note: On ne rechiffre pas l'alerte ici pour éviter une boucle infinie 
+        # car le watcher lit déjà depuis chiffred.enc
+            
         return alert_id
     
     def print_alert(self, attack_type: str, pattern: str, line: str):

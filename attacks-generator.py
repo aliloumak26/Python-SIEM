@@ -128,7 +128,7 @@ def generate_log_entry(attack_type, payload):
 class AttackGenerator:
     """Thread-safe attack generator that can be started and stopped."""
     
-    def __init__(self, log_path=None, sleep_interval=1):
+    def __init__(self, log_path=None, sleep_interval=5):
         """
         Initialize the attack generator.
         
@@ -173,19 +173,23 @@ class AttackGenerator:
         
         while self.running:
             try:
-                attack_type = random.choice(["SQL Injection", "XSS"])
+                attack_type = random.choice(["SQL Injection", "XSS Injection"])
                 
                 if attack_type == "SQL Injection":
                     payload = random.choice(SQLI_PATTERNS)
-                elif attack_type == "XSS":
+                elif attack_type == "XSS Injection":
                     payload = random.choice(XSS_PATTERNS)
                 
                 log = generate_log_entry(attack_type, payload)
                 
-                with open(self.log_path, "a", encoding="utf-8") as f:
-                    f.write(log)
+                # Chiffrer et écrire directement dans le fichier sécurisé
+                try:
+                    from utils.chiffrer import chiffrer_donnees
+                    chiffrer_donnees(log)
+                    print(f"[{attack_type}] (Chiffré) → {payload}")
+                except Exception as e:
+                    print(f"[!] Erreur chiffrement generator: {e}")
                 
-                print(f"[{attack_type}]  →  {payload}")
                 time.sleep(self.sleep_interval)
                 
             except Exception as e:
