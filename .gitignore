@@ -9,6 +9,9 @@ venv/
 env/
 ENV/
 
+# Environment variables
+.env
+
 # Database
 siem.db
 *.sqlite3
