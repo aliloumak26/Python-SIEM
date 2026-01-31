@@ -81,6 +81,6 @@ def detect(line):
         if re.search(p, text, re.IGNORECASE):
             matches.append(p)
     if matches:
-        return True, matches, "XSS injection"
+        return True, matches, "XSS"
 
     return False, None, None

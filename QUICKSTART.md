@@ -11,13 +11,13 @@ pip install fastapi uvicorn websockets scikit-learn pandas numpy paramiko reques
 python ml/train.py
 ```
 
-### 2. Démarrer le SIEM
+### 2. Démarrer le Dashboard (GUI)
 ```powershell
-# Lance le serveur complet (API + Honeypots + Moteur)
-python main.py
+# Lance l'interface principale PySide6
+python dashboard_gui.py
 ```
 
-Le système démarrera automatiquement et ouvrira le dashboard dans votre navigateur : **http://localhost:8000**
+L'interface s'ouvre dans une fenêtre dédiée avec tous les outils intégrés.
 
 ---
 
@@ -26,7 +26,7 @@ Le système démarrera automatiquement et ouvrira le dashboard dans votre naviga
 ### Dans un NOUVEAU terminal PowerShell :
 
 ```powershell
-cd C:\Users\sramz\Desktop\SIEM
+cd C:\Users\Pc\Documents\Python-SIEM
 python attacks-generator.py
 ```
 

@@ -42,13 +42,13 @@ class AlertManager:
     
     def extract_ip(self, line: str) -> str:
         """Extrait l'IP source d'une ligne de log"""
-        # Format Apache: IP - - [timestamp] ...
+        # Format Node.js unifié: 2026-01-31T...  ::1  METHOD ...
+        parts = re.split(r'\s+', line.strip())
+        if len(parts) >= 2:
+            return parts[1]
+            
+        # Fallback Apache: IP - - [timestamp] ...
         match = re.match(r'^(\d+\.\d+\.\d+\.\d+)', line)
-        if match:
-            return match.group(1)
-        
-        # Format alternatif
-        match = re.search(r'-\s*([0-9a-fA-F\:\\.]+)\s*-\s*', line)
         if match:
             return match.group(1)
         

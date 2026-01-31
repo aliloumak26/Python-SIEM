@@ -14,12 +14,12 @@
 - **HTTP Honeypot** (port 8888) - Simule des endpoints vulnérables
 - Logging automatique dans la base de données
 
-### 🌐 Interface Web Moderne
-- **Dashboard temps réel** avec WebSocket
-- **Carte du monde** interactive (géolocalisation des attaques)
-- **Graphiques** Chart.js (distribution, timeline)
-- **Table d'alertes** filtrables et dynamiques
-- Design **dark mode premium** avec animations
+### 🖥️ Interface GUI (PySide6) - **RECOMMANDÉ**
+- **Dashboard temps réel** avec thème sombre premium
+- **Scroll complet** de la page pour une vue d'ensemble
+- **Cartes statistiques** dynamiques (SQLi, XSS, ML Anomaly, etc.)
+- **Auto-scroll** intelligent des logs et alertes
+- **Filtrage interactif** immédiat
 
 ### 🔍 Détecteurs
 - **SQL Injection** - 50+ patterns
@@ -48,15 +48,16 @@ python ml/train.py
 
 ## 🚀 Lancement
 
+### Version Desktop (PySide6) - Recommandé
+```bash
+python dashboard_gui.py
+```
+
+### Version Web (Legacy)
 ```bash
 python main.py
 ```
-
-Le système va démarrer:
-1. ✅ Moteur SIEM (surveillance des logs)
-2. ✅ Honeypots SSH (port 2222) et HTTP (port 8888)
-3. ✅ API FastAPI + WebSocket
-4. ✅ Dashboard web (http://localhost:8000)
+Le système démarrera alors le dashboard web (http://localhost:8000).
 
 ## 🧪 Test
 
@@ -114,8 +115,8 @@ SIEM/
 │   └── normalize.py
 ├── config/
 │   └── settings.py
-├── main.py                # Launcher principal
-├── main_pyside6_backup.py # Ancienne GUI (backup)
+├── dashboard_gui.py       # Interface principale PySide6
+├── main.py                # Lanceur version Web (Legacy)
 └── requirements.txt
 ```
 

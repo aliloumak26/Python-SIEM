@@ -26,7 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== MAP ====================
 function initMap() {
-    map = L.map('map').setView([20, 0], 2);
+    map = L.map('map', {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([30, 0], 2);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© OpenStreetMap, © CartoDB',
@@ -37,30 +40,34 @@ function initMap() {
 }
 
 function updateMapMarkers(geoData) {
-    // Supprimer les anciens marqueurs (simplified - en production utiliser une layer group)
+    // Supprimer les anciens marqueurs
     map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
+        if (layer instanceof L.CircleMarker) {
             map.removeLayer(layer);
         }
     });
 
-    // Ajouter les nouveaux marqueurs
-    geoData.forEach(item => {
+    // Ajouter les nouveaux marqueurs avec animation
+    geoData.forEach((item, index) => {
         if (item.latitude && item.longitude) {
-            const marker = L.circleMarker([item.latitude, item.longitude], {
-                radius: Math.min(item.count * 2, 20),
-                fillColor: '#ef4444',
-                color: '#fff',
-                weight: 1,
-                opacity: 0.8,
-                fillOpacity: 0.6
-            }).addTo(map);
+            setTimeout(() => {
+                const marker = L.circleMarker([item.latitude, item.longitude], {
+                    radius: Math.min(item.count * 2 + 4, 20),
+                    fillColor: '#f87171',
+                    color: 'rgba(248, 113, 113, 0.5)',
+                    weight: 2,
+                    opacity: 0.9,
+                    fillOpacity: 0.6
+                }).addTo(map);
 
-            marker.bindPopup(`
-                <strong>${item.country}</strong><br>
-                ${item.city}<br>
-                <em>${item.count} attacks</em>
-            `);
+                marker.bindPopup(`
+                    <div style="font-family: Inter, sans-serif; padding: 4px;">
+                        <strong style="color: #f87171;">${item.country || 'Unknown'}</strong><br>
+                        <span style="color: #94a3b8;">${item.city || ''}</span><br>
+                        <em style="color: #818cf8;">${item.count} attaque(s)</em>
+                    </div>
+                `);
+            }, index * 50);
         }
     });
 }
@@ -73,9 +80,18 @@ function initCharts() {
         plugins: {
             legend: {
                 labels: {
-                    color: '#f3f4f6'
+                    color: '#94a3b8',
+                    font: {
+                        family: 'Inter',
+                        size: 12
+                    },
+                    padding: 16
                 }
             }
+        },
+        animation: {
+            duration: 750,
+            easing: 'easeOutQuart'
         }
     };
 
@@ -88,27 +104,32 @@ function initCharts() {
             datasets: [{
                 data: [0, 0, 0, 0],
                 backgroundColor: [
-                    '#ef4444',
-                    '#f59e0b',
-                    '#6366f1',
-                    '#10b981'
+                    'rgba(248, 113, 113, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(129, 140, 248, 0.8)',
+                    'rgba(52, 211, 153, 0.8)'
                 ],
-                borderColor: '#1a1f3a',
-                borderWidth: 2
+                borderColor: 'rgba(15, 22, 41, 0.8)',
+                borderWidth: 3,
+                hoverOffset: 8
             }]
         },
         options: {
             ...commonOptions,
+            cutout: '65%',
             plugins: {
                 ...commonOptions.plugins,
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#f3f4f6',
-                        padding: 15,
+                        color: '#94a3b8',
+                        padding: 20,
                         font: {
+                            family: 'Inter',
                             size: 12
-                        }
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
                     }
                 }
             }
@@ -117,17 +138,28 @@ function initCharts() {
 
     // Timeline Chart (Line)
     const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    
+    const gradient = timelineCtx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
+    gradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
+
     timelineChart = new Chart(timelineCtx, {
         type: 'line',
         data: {
             labels: [],
             datasets: [{
-                label: 'Attacks',
+                label: 'Attaques',
                 data: [],
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#818cf8',
+                backgroundColor: gradient,
                 tension: 0.4,
-                fill: true
+                fill: true,
+                borderWidth: 2,
+                pointBackgroundColor: '#818cf8',
+                pointBorderColor: '#0f1629',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
@@ -136,21 +168,33 @@ function initCharts() {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        color: '#9ca3af',
-                        precision: 0
+                        color: '#64748b',
+                        precision: 0,
+                        font: {
+                            family: 'Inter'
+                        }
                     },
                     grid: {
-                        color: '#2d3748'
+                        color: 'rgba(148, 163, 184, 0.08)',
+                        drawBorder: false
                     }
                 },
                 x: {
                     ticks: {
-                        color: '#9ca3af'
+                        color: '#64748b',
+                        font: {
+                            family: 'Inter'
+                        },
+                        maxRotation: 0
                     },
                     grid: {
-                        color: '#2d3748'
+                        display: false
                     }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
@@ -167,11 +211,10 @@ function updateTypeChart(data) {
     ];
 
     typeChart.data.datasets[0].data = values;
-    typeChart.update('none'); // Pas d'animation pour updates fréquentes
+    typeChart.update('none');
 }
 
 function updateTimelineChart(timeline) {
-    // Grouper par heure
     const hourlyData = {};
 
     timeline.forEach(item => {
@@ -201,8 +244,8 @@ function renderAlertsTable(alerts) {
     if (!alerts || alerts.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem; color: #6b7280;">
-                    No alerts found
+                <td colspan="6" style="text-align: center; padding: 3rem; color: #64748b;">
+                    Aucune alerte trouvée
                 </td>
             </tr>
         `;
@@ -213,18 +256,35 @@ function renderAlertsTable(alerts) {
         ? alerts
         : alerts.filter(a => a.attack_type === currentFilter);
 
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: #64748b;">
+                    Aucune alerte pour ce filtre
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
     tbody.innerHTML = filtered.map(alert => `
         <tr>
-            <td>${formatTimestamp(alert.timestamp)}</td>
+            <td style="white-space: nowrap;">${formatTimestamp(alert.timestamp)}</td>
             <td><span class="severity-badge severity-${alert.severity}">${alert.severity}</span></td>
             <td><span class="type-badge">${alert.attack_type}</span></td>
-            <td>${alert.source_ip || 'unknown'}</td>
-            <td>${alert.country || '-'}</td>
-            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${alert.pattern || '-'}
+            <td style="font-family: monospace; font-size: 0.8125rem;">${alert.source_ip || 'N/A'}</td>
+            <td>${alert.country || '—'}</td>
+            <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(alert.pattern || '')}">
+                ${alert.pattern || '—'}
             </td>
         </tr>
     `).join('');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function formatTimestamp(ts) {
@@ -242,11 +302,38 @@ function formatTimestamp(ts) {
 function updateStatsCards(stats) {
     const byType = stats.by_type || {};
 
-    document.getElementById('statSQLI').textContent = byType['SQL Injection'] || 0;
-    document.getElementById('statXSS').textContent = byType['XSS'] || 0;
-    document.getElementById('statBruteForce').textContent = byType['Brute Force'] || 0;
-    document.getElementById('statTotal').textContent = stats.total || 0;
+    animateValue('statSQLI', byType['SQL Injection'] || 0);
+    animateValue('statXSS', byType['XSS'] || 0);
+    animateValue('statBruteForce', byType['Brute Force'] || 0);
+    animateValue('statTotal', stats.total || 0);
     document.getElementById('headerTotal').textContent = stats.total || 0;
+}
+
+function animateValue(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    const currentValue = parseInt(element.textContent) || 0;
+    
+    if (currentValue === newValue) return;
+    
+    const duration = 500;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(currentValue + (newValue - currentValue) * easeOut);
+        
+        element.textContent = value;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 // ==================== WEBSOCKET ====================
@@ -255,6 +342,7 @@ function initWebSocket() {
 
     ws.onopen = () => {
         console.log('✅ WebSocket connecté');
+        document.getElementById('headerLive').textContent = '● LIVE';
     };
 
     ws.onmessage = (event) => {
@@ -273,30 +361,29 @@ function initWebSocket() {
 
     ws.onclose = () => {
         console.log('🔌 WebSocket fermé, reconnexion dans 5s...');
+        document.getElementById('headerLive').textContent = '○ OFFLINE';
+        document.getElementById('headerLive').classList.remove('pulse');
         setTimeout(initWebSocket, 5000);
     };
 }
 
 function handleNewAlert(alert) {
-    // Ajouter en début de liste
     alertsData.unshift(alert);
 
-    // Limiter à 100 alertes en mémoire
     if (alertsData.length > 100) {
         alertsData = alertsData.slice(0, 100);
     }
 
-    // Re-render table
     renderAlertsTable(alertsData);
 
-    // Animation flash
+    // Animation flash pour la nouvelle alerte
     const tbody = document.getElementById('alertsTableBody');
     const firstRow = tbody.querySelector('tr');
     if (firstRow) {
-        firstRow.style.background = 'rgba(99, 102, 241, 0.3)';
+        firstRow.classList.add('alert-new');
         setTimeout(() => {
-            firstRow.style.background = '';
-        }, 1000);
+            firstRow.classList.remove('alert-new');
+        }, 1500);
     }
 
     console.log('🚨 Nouvelle alerte:', alert.attack_type);
@@ -313,14 +400,10 @@ function setupFilters() {
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Update active state
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Update filter
             currentFilter = btn.dataset.filter;
-
-            // Re-render table
             renderAlertsTable(alertsData);
         });
     });
@@ -329,7 +412,6 @@ function setupFilters() {
 // ==================== DATA LOADING ====================
 async function loadInitialData() {
     try {
-        // Load stats
         const statsRes = await fetch(`${API_BASE}/api/stats`);
         const stats = await statsRes.json();
 
@@ -338,7 +420,6 @@ async function loadInitialData() {
         updateTimelineChart(stats.timeline || []);
         updateMapMarkers(stats.geo_data || []);
 
-        // Load alerts
         const alertsRes = await fetch(`${API_BASE}/api/alerts?limit=50`);
         const alertsData_json = await alertsRes.json();
         alertsData = alertsData_json.alerts || [];
@@ -349,11 +430,17 @@ async function loadInitialData() {
 
     } catch (error) {
         console.error('❌ Erreur chargement:', error);
+        document.getElementById('alertsTableBody').innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: #f87171;">
+                    Erreur de connexion au serveur
+                </td>
+            </tr>
+        `;
     }
 }
 
 // ==================== AUTO REFRESH ====================
 setInterval(() => {
-    // Rafraîchir les données toutes les 30 secondes (en backup du WebSocket)
     loadInitialData();
 }, 30000);

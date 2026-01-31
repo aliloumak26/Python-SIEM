@@ -6,51 +6,47 @@ Génère des données synthétiques et entraîne le détecteur d'anomalies
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+# Chemin absolu du dossier racine du projet
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
 
 from ml.anomaly_detector import AnomalyDetector
 import random
 
 def generate_normal_logs(count: int = 1000) -> list:
-    """Génère des logs HTTP normaux"""
+    """Génère des logs HTTP normaux (Format Node.js unifié)"""
     logs = []
     
-    normal_paths = [
-        '/', '/index.html', '/about', '/contact', '/products', '/services',
-        '/api/users', '/api/products', '/favicon.ico', '/robots.txt',
-        '/css/style.css', '/js/app.js', '/images/logo.png'
-    ]
-    
-    user_agents = [
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-        'Mozilla/5.0 (X11; Linux x86_64)',
-    ]
-    
-    status_codes = [200, 200, 200, 200, 304, 301, 302]  # Principalement 200
+    endpoints = ["/api/teachers", "/api/students", "/api/classes", "/api/search", "/api/users"]
+    methods = ["GET", "POST", "PUT"]
     
     for i in range(count):
-        ip = f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}"
-        path = random.choice(normal_paths)
+        time_iso = f"2026-01-31T{random.randint(10,23)}:{random.randint(10,59)}:{random.randint(10,59)}.123Z"
+        method = random.choice(methods)
+        path = f"{random.choice(endpoints)}/{random.randint(1,100)}"
         
-        # Ajouter parfois des paramètres normaux
-        if random.random() < 0.3:
-            param_name = random.choice(['id', 'page', 'lang', 'sort'])
-            param_value = random.randint(1, 100)
-            path += f"?{param_name}={param_value}"
+        body = ""
+        if method in ["POST", "PUT"]:
+            # On simule un formulaire complet comme celui de l'utilisateur
+            first = random.choice(["Lyes", "Amine", "Sarah", "Karim", "Zouina", "Lyes"])
+            last = random.choice(["Abada", "Ziri", "Belaid", "Doukha", "Merah"])
+            grade = random.choice(["Maitre de conference", "Professeur", "1, Master Assistant"])
+            gender = random.choice(["Man", "Woman"])
+            email = f"{first.lower()}{random.randint(1,99)}@gmail.com"
+            
+            body = f' body:{{"lastName":"{last}","firstName":"{first}","grade":"{grade}","gender":"{gender}","phone":"0550{random.randint(100000,999999)}","email":"{email}","statut":"Actif"}}'
+            
+        status = 200
+        duration = f"{random.randint(5, 40)}ms"
         
-        method = random.choice(['GET', 'GET', 'GET', 'POST'])
-        status = random.choice(status_codes)
-        size = random.randint(100, 5000)
-        agent = random.choice(user_agents)
-        
-        log = f'{ip} - - [10/Jan/2026:10:10:10 +0100] "{method} {path} HTTP/1.1" {status} {size} "-" "{agent}"'
+        log = f"[18:00:00] {time_iso}  ::1  {method} {path}{body}  {status}  {duration}"
         logs.append(log)
     
     return logs
 
 def generate_attack_logs(count: int = 100) -> list:
-    """Génère des logs d'attaques (pour tester)"""
+    """Génère des logs d'attaques (Format Node.js unifié)"""
     logs = []
     
     attack_payloads = [
@@ -63,10 +59,18 @@ def generate_attack_logs(count: int = 100) -> list:
     ]
     
     for i in range(count):
-        ip = f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}"
+        time_iso = f"2026-01-31T20:00:00.000Z"
+        method = random.choice(["GET", "POST"])
         payload = random.choice(attack_payloads)
         
-        log = f'{ip} - - [10/Jan/2026:10:10:10 +0100] "GET /search?q={payload} HTTP/1.1" 200 123 "-" "AttackBot"'
+        if method == "POST":
+            path = "/api/login"
+            body = f' body:{{"user":"admin","pass":"{payload}"}}'
+        else:
+            path = f"/api/search?q={payload}"
+            body = ""
+            
+        log = f"[20:00:00] {time_iso}  ::1  {method} {path}{body}  200  15ms"
         logs.append(log)
     
     return logs
@@ -88,6 +92,8 @@ def main():
     
     # Sauvegarder
     print("\n[3/3] Sauvegarde du modèle...")
+    # Forcer le chemin de sauvegarde absolu
+    model_path = os.path.join(BASE_DIR, 'ml', 'anomaly_model.pkl')
     detector.save_model()
     
     # Test rapide

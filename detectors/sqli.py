@@ -13,8 +13,8 @@ PATTERNS = [
     
     
     # SELECT patterns
-    r"select\s+\*?\s+from",
-    r"select.*from.*where",
+    r"select\s+.*from",
+    r"select\s+\*",
     r"select.*as",
     
     

@@ -118,10 +118,27 @@ XSS_PATTERNS = [
 
 # ----------------- LOG CREATOR -----------------
 def generate_log_entry(attack_type, payload):
-    return (
-        f'127.0.0.1 - - [10/Feb/2025:10:10:10 +0100] '
-        f'"GET /test?q={payload} HTTP/1.1" 200 123 "-" "AttackBot"\n'
-    )
+    # Format unifié (identique au logger Node.js)
+    # ${timestamp}  ${ip}  ${req.method} ${req.originalUrl}${bodyString}  ${res.statusCode}  ${duration}ms
+    
+    from datetime import datetime
+    timestamp = datetime.now().isoformat() + "Z"
+    ip = "::1"
+    
+    # On simule parfois du POST/PUT pour inclure le payload dans le body
+    method = random.choice(["GET", "POST", "PUT"])
+    
+    if method in ["POST", "PUT"]:
+        path = "/api/teachers/1"
+        body = f' body:{{"firstName":"LYES","lastName":"ABADA","payload":"{payload}"}}'
+    else:
+        path = f"/api/search?q={payload}"
+        body = ""
+        
+    status = 200
+    duration = f"{random.randint(5, 20)}ms"
+    
+    return f"{timestamp}  {ip}  {method} {path}{body}  {status}  {duration}\n"
 
 
 # ----------------- ATTACK GENERATOR CLASS -----------------

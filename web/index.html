@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SIEM Dashboard - Surveillance de sécurité en temps réel">
     <title>SIEM Dashboard - Security Monitoring</title>
     <link rel="stylesheet" href="/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
@@ -18,11 +19,11 @@
         <div class="header-stats">
             <div class="header-stat">
                 <div class="header-stat-value" id="headerTotal">0</div>
-                <div class="header-stat-label">Total Alerts</div>
+                <div class="header-stat-label">Total Alertes</div>
             </div>
             <div class="header-stat">
-                <div class="header-stat-value pulse" id="headerLive">LIVE</div>
-                <div class="header-stat-label">Status</div>
+                <div class="header-stat-value pulse" id="headerLive">● LIVE</div>
+                <div class="header-stat-label">Statut</div>
             </div>
         </div>
     </header>
@@ -36,7 +37,7 @@
                     <span class="stat-icon">💉</span>
                 </div>
                 <div class="stat-value" id="statSQLI">0</div>
-                <div class="stat-change">+0 today</div>
+                <div class="stat-change">+0 aujourd'hui</div>
             </div>
 
             <div class="stat-card">
@@ -45,7 +46,7 @@
                     <span class="stat-icon">⚡</span>
                 </div>
                 <div class="stat-value" id="statXSS">0</div>
-                <div class="stat-change">+0 today</div>
+                <div class="stat-change">+0 aujourd'hui</div>
             </div>
 
             <div class="stat-card">
@@ -54,36 +55,36 @@
                     <span class="stat-icon">🔐</span>
                 </div>
                 <div class="stat-value" id="statBruteForce">0</div>
-                <div class="stat-change">+0 today</div>
+                <div class="stat-change">+0 aujourd'hui</div>
             </div>
 
             <div class="stat-card success">
                 <div class="stat-header">
-                    <span class="stat-title">Total Attacks</span>
+                    <span class="stat-title">Total Attaques</span>
                     <span class="stat-icon">🎯</span>
                 </div>
                 <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-change">Last 7 days</div>
+                <div class="stat-change">7 derniers jours</div>
             </div>
         </div>
 
         <!-- Map -->
         <div class="map-section">
-            <h2 class="section-title">🌍 Attack Geolocation</h2>
+            <h2 class="section-title">🌍 Géolocalisation des attaques</h2>
             <div id="map"></div>
         </div>
 
         <!-- Charts -->
         <div class="charts-grid">
             <div class="chart-card">
-                <h2 class="section-title">📊 Attack Types Distribution</h2>
+                <h2 class="section-title">📊 Distribution par type</h2>
                 <div class="chart-container">
                     <canvas id="typeChart"></canvas>
                 </div>
             </div>
 
             <div class="chart-card">
-                <h2 class="section-title">📈 Attack Timeline (24h)</h2>
+                <h2 class="section-title">📈 Timeline (24h)</h2>
                 <div class="chart-container">
                     <canvas id="timelineChart"></canvas>
                 </div>
@@ -92,10 +93,10 @@
 
         <!-- Alerts Table -->
         <div class="alerts-section">
-            <h2 class="section-title">🚨 Recent Alerts</h2>
+            <h2 class="section-title">🚨 Alertes récentes</h2>
             
             <div class="filters">
-                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn active" data-filter="all">Toutes</button>
                 <button class="filter-btn" data-filter="SQL Injection">SQL Injection</button>
                 <button class="filter-btn" data-filter="XSS">XSS</button>
                 <button class="filter-btn" data-filter="Brute Force">Brute Force</button>
@@ -107,17 +108,17 @@
                     <thead>
                         <tr>
                             <th>Timestamp</th>
-                            <th>Severity</th>
+                            <th>Sévérité</th>
                             <th>Type</th>
-                            <th>Source IP</th>
-                            <th>Country</th>
+                            <th>IP Source</th>
+                            <th>Pays</th>
                             <th>Pattern</th>
                         </tr>
                     </thead>
                     <tbody id="alertsTableBody">
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 2rem;">
-                                <div class="loading"></div> Loading alerts...
+                                <span class="loading"></span> Chargement des alertes...
                             </td>
                         </tr>
                     </tbody>

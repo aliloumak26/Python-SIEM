@@ -34,7 +34,8 @@ class AnomalyDetector:
         features.append(len(log_line))
         
         # 2. Longueur de l'URL
-        url_match = re.search(r'"(?:GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)', log_line)
+        # Format unifié: timestamp  ip  method  url  body  status  duration
+        url_match = re.search(r'\s(?:GET|POST|PUT|DELETE|PATCH)\s+([^\s?]+)', log_line)
         url_length = len(url_match.group(1)) if url_match else 0
         features.append(url_length)
         

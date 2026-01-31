@@ -15,6 +15,11 @@ ENV/
 # Database
 siem.db
 *.sqlite3
+*.db
+
+# Encrypted Logs
+*.enc
+chiffred.enc
 
 
 
