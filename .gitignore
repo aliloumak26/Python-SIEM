@@ -12,10 +12,6 @@ ENV/
 # Environment variables
 .env
 
-# Database
-siem.db
-*.sqlite3
-*.db
 
 # Encrypted Logs
 *.enc
