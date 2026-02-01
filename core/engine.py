@@ -1,10 +1,12 @@
 import os
 import time
 import threading
-from typing import List, Callable
+import json
+from datetime import datetime, timedelta
+from typing import List, Callable, Dict
 from config.settings import settings
 from core.alert_manager import AlertManager
-from core.database import Database
+# Database removed
 from utils.chiffrer import chiffrer_donnees
 
 class SIEMEngine:
@@ -15,7 +17,7 @@ class SIEMEngine:
     
     def __init__(self, detectors: List[Callable] = None):
         self.alert_manager = AlertManager()
-        self.db = Database()
+        # db removed
         self.detectors = detectors or []
         self.running = False
         self.watcher_thread = None
@@ -75,8 +77,9 @@ class SIEMEngine:
                 with open(log_path, "rb") as f:
                     f.seek(last_pos)
                     
-                    for line in f:
-                        if not self.running:
+                    while True:
+                        line = f.readline()
+                        if not line or not self.running:
                             break
                         
                         if not line.strip():
@@ -93,13 +96,14 @@ class SIEMEngine:
                                 found, pattern, attack_type = detector(log_line)
                                 
                                 if found:
-                                    # Enregistrer l'alerte
+                                    # Enregistrer l'alerte (JSON dans alerts.log)
+                                    # Note: log_alert returns just an ID now, so we read back the last line
                                     self.alert_manager.log_alert(attack_type, pattern, log_line)
                                     
-                                    # Récupérer l'alerte complète depuis la DB
-                                    alerts = self.db.get_recent_alerts(limit=1)
-                                    if alerts:
-                                        self.emit('new_alert', alerts[0])
+                                    # Récupérer la dernière alerte pour l'UI
+                                    latest_alerts = self.get_recent_alerts(limit=1)
+                                    if latest_alerts:
+                                        self.emit('new_alert', latest_alerts[0])
                                     
                                     # Statistiques
                                     self.emit('stats_update', self.get_statistics())
@@ -108,9 +112,6 @@ class SIEMEngine:
                                     break
                         except Exception as e:
                             print(f"[Engine] Erreur ligne: {e}")
-                            
-                            except Exception as e:
-                                print(f"[Engine] Erreur détecteur: {e}")
                     
                     last_pos = f.tell()
                 
@@ -120,17 +121,112 @@ class SIEMEngine:
                 print(f"[Engine] Erreur surveillance: {e}")
                 time.sleep(1)
     
+    def _read_all_alerts(self) -> List[Dict]:
+        """Lit toutes les alertes du fichier"""
+        alerts = []
+        path = settings.ALERTS_LOG_PATH
+        if not os.path.exists(path):
+            return []
+            
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and line.startswith('{'):
+                        try:
+                            alerts.append(json.loads(line))
+                        except:
+                            pass
+        except Exception as e:
+            print(f"[Engine] Erreur lecture logs: {e}")
+        return alerts
+
     def get_statistics(self) -> dict:
-        """Récupère les statistiques actuelles"""
-        stats_by_type = self.db.get_stats_by_type(days=30)
-        total = sum(stats_by_type.values())
+        """Récupère les statistiques depuis le fichier de log"""
+        alerts = self._read_all_alerts()
+        
+        # Filtrer les 30 derniers jours pour les stats
+        cutoff = datetime.now() - timedelta(days=30)
+        recent_alerts = []
+        
+        stats_by_type = {}
+        top_ips = {}
+        
+        for alert in alerts:
+            # Parse timestamp if needed, currently string
+            try:
+                ts = datetime.strptime(alert['timestamp'], "%Y-%m-%d %H:%M:%S")
+                if ts > cutoff:
+                    recent_alerts.append(alert)
+                    
+                    # Type count
+                    atype = alert.get('attack_type', 'Unknown')
+                    stats_by_type[atype] = stats_by_type.get(atype, 0) + 1
+                    
+                    # IP count
+                    ip = alert.get('source_ip')
+                    if ip and ip != 'unknown':
+                        top_ips[ip] = top_ips.get(ip, 0) + 1
+            except:
+                continue
+                
+        total = len(recent_alerts)
+        
+        # Sort top IPs
+        sorted_ips = sorted(top_ips.items(), key=lambda x: x[1], reverse=True)[:10]
         
         return {
             'by_type': stats_by_type,
             'total': total,
-            'top_ips': self.db.get_top_attackers(limit=10)
+            'top_ips': [{"source_ip": ip, "count": c} for ip, c in sorted_ips]
         }
     
     def get_recent_alerts(self, limit: int = 100):
-        """Récupère les alertes récentes"""
-        return self.db.get_recent_alerts(limit=limit)
+        """Récupère les alertes récentes (lecture inverse)"""
+        alerts = []
+        path = settings.ALERTS_LOG_PATH
+        if not os.path.exists(path):
+            return []
+            
+        # Lecture simple (optimisable avec seek pour gros fichiers)
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                for line in reversed(lines):
+                    if len(alerts) >= limit:
+                        break
+                    line = line.strip()
+                    if line and line.startswith('{'):
+                        try:
+                            alerts.append(json.loads(line))
+                        except:
+                            pass
+        except Exception as e:
+            print(f"[Engine] Erreur lecture logs: {e}")
+            
+        return alerts
+
+    def get_honeypot_logs(self, limit: int = 100):
+        """Récupère les logs honeypot récents (lecture inverse)"""
+        logs = []
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "honeypot.log")
+        
+        if not os.path.exists(path):
+            return []
+            
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                for line in reversed(lines):
+                    if len(logs) >= limit:
+                        break
+                    line = line.strip()
+                    if line and line.startswith('{'):
+                        try:
+                            logs.append(json.loads(line))
+                        except:
+                            pass
+        except Exception as e:
+            print(f"[Engine] Erreur lecture honeypot logs: {e}")
+            
+        return logs

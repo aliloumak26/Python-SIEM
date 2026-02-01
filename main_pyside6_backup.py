@@ -61,10 +61,9 @@ class ModernSIEM(QtWidgets.QMainWindow):
         self.alert_manager = AlertManager()
         self.signals = AlertSignals()
 
-        # stats internes
         self.stats = {
             "SQL Injection": 0,
-            "XSS": 0,
+            "XSS Injection": 0,
             "Brute Force": 0,
             "Others": 0,
             "Total": 0
@@ -103,7 +102,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
         layout.addLayout(cards)
 
         self.card_sqli = self.create_card("SQL Injection")
-        self.card_xss = self.create_card("XSS")
+        self.card_xss = self.create_card("XSS Injection")
         self.card_bruteforce = self.create_card("Brute Force")
         self.card_total = self.create_card("Total Attacks", big=True)
 
@@ -117,7 +116,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
         layout.addLayout(filter_layout)
 
         self.filter_box = QtWidgets.QComboBox()
-        self.filter_box.addItems(["All", "SQL Injection", "XSS", "Brute Force", "CSRF", "File Upload", "OS Injection", "CRLF"])
+        self.filter_box.addItems(["All", "SQL Injection", "XSS Injection", "Brute Force", "CSRF", "File Upload", "OS Injection", "CRLF"])
         self.filter_box.currentTextChanged.connect(self.apply_filter)
 
         filter_layout.addWidget(QtWidgets.QLabel("Filtrer par type:"))
@@ -196,8 +195,10 @@ class ModernSIEM(QtWidgets.QMainWindow):
             card._count.setText(str(value))
             card._pct.setText(f"{pct}%")
 
-        update(self.card_sqli, stats["SQL Injection"])
-        update(self.card_xss, stats["XSS"])
+        update(self.card_sqli, stats.get("SQL Injection", 0))
+        # Support pour les deux clés (ancienne et nouvelle) pour éviter le crash
+        xss_val = stats.get("XSS Injection", stats.get("XSS", 0))
+        update(self.card_xss, xss_val)
         update(self.card_bruteforce, stats["Brute Force"])
 
         self.card_total._count.setText(str(stats["Total"]))
@@ -246,14 +247,20 @@ class ModernSIEM(QtWidgets.QMainWindow):
 
                 with open(log_path, "rb") as f:
                     f.seek(last_pos)
-                    for line in f:
-                        if not line.strip(): continue
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                            
+                        if not line.strip():
+                            continue
                         
                         # Déchiffrer la ligne
                         try:
                             from utils.dechiffrer import dechiffrer_donnees
                             log_line = dechiffrer_donnees(line)
-                            if not log_line: continue
+                            if not log_line:
+                                continue
                             
                             stripped = log_line.strip()
                             self.signals.log_message.emit(stripped)
@@ -262,12 +269,19 @@ class ModernSIEM(QtWidgets.QMainWindow):
                                 found, pattern, attack_type = detect(log_line)
                                 if not found:
                                     continue
-    
+                                
+                                # Normalisation du nom pour XSS
+                                if "XSS" in attack_type:
+                                    attack_type = "XSS Injection"
+
                                 if isinstance(pattern, list):
                                     pattern = ", ".join(str(p) for p in pattern)
     
                                 # Enregistrer dans alerts.log
-                                self.alert_manager.log_alert(attack_type, pattern, log_line)
+                                try:
+                                    self.alert_manager.log_alert(attack_type, pattern, log_line)
+                                except Exception as e_log:
+                                    print(f"[Watcher] Erreur log_alert: {e_log}")
     
                                 alert = {
                                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

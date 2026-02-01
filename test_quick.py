@@ -14,7 +14,7 @@ import threading
 sys.path.insert(0, os.path.dirname(__file__))
 
 from core.engine import SIEMEngine
-from core.database import Database
+# Database removed
 from detectors.sqli import detect as detect_sqli
 from detectors.xss import detect as detect_xss
 from detectors.bruteforce import detect as detect_bruteforce
@@ -76,9 +76,8 @@ def main():
     print("🛡️  TEST RAPIDE - SIEM")
     print("="*60 + "\n")
     
-    # Initialiser la DB
-    db = Database()
-    print("[1/4] ✓ Base de données initialisée")
+    # DB removed
+    print("[1/4] ✓ Base de données retirée (Mode Fichier)")
     
     # Test des détecteurs
     test_detectors()
@@ -97,7 +96,7 @@ def main():
     time.sleep(2)
     
     # Vérifier les alertes
-    alerts = db.get_recent_alerts(limit=10)
+    alerts = engine.get_recent_alerts(limit=10)
     print(f"   ✓ {len(alerts)} alertes détectées")
     
     # Démarrer l'API

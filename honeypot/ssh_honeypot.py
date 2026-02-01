@@ -6,10 +6,16 @@ Capture les tentatives de connexion SSH et les commandes
 import socket
 import threading
 import time
+import json
+import os
 from datetime import datetime
-from core.database import Database
+# Database removed
 from utils.geoip import GeoIPLocator
 from utils.chiffrer import chiffrer_donnees
+
+# Define log path
+LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+HONEYPOT_LOG_PATH = os.path.join(LOG_DIR, "honeypot.log")
 
 class SSHHoneypot:
     """Honeypot SSH basique (simulation)"""
@@ -19,7 +25,7 @@ class SSHHoneypot:
         self.port = port
         self.running = False
         self.server_thread = None
-        self.db = Database()
+        # Database removed
         self.geoip = GeoIPLocator()
     
     def start(self):
@@ -69,6 +75,14 @@ class SSHHoneypot:
             except:
                 pass
     
+    def _log_to_file(self, data: dict):
+        """Écrit le log dans un fichier JSON"""
+        try:
+            with open(HONEYPOT_LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(data) + "\n")
+        except Exception as e:
+            print(f"[Honeypot] Failed to write log: {e}")
+
     def _handle_client(self, client: socket.socket, addr: tuple):
         """Gère une connexion client"""
         ip, port = addr
@@ -80,13 +94,19 @@ class SSHHoneypot:
             
             # Log de la tentative de connexion
             geo_data = self.geoip.locate(ip)
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            log_entry = {
+                "timestamp": timestamp,
+                "service": "SSH",
+                "source_ip": ip,
+                "source_port": port,
+                "country": geo_data.get('country'),
+                "city": geo_data.get('city')
+            }
             
-            self.db.insert_honeypot_log(
-                service='SSH',
-                source_ip=ip,
-                source_port=port,
-                geo_data=geo_data
-            )
+            # Write to file
+            self._log_to_file(log_entry)
             
             print(f"[Honeypot SSH] ⚠️ Connexion depuis {ip}:{port} ({geo_data.get('country', 'Unknown')})")
             
@@ -123,7 +143,7 @@ class HTTPHoneypot:
         self.port = port
         self.running = False
         self.server_thread = None
-        self.db = Database()
+        # Database removed
         self.geoip = GeoIPLocator()
     
     def start(self):
@@ -173,6 +193,14 @@ class HTTPHoneypot:
             except:
                 pass
     
+    def _log_to_file(self, data: dict):
+        """Écrit le log dans un fichier JSON"""
+        try:
+            with open(HONEYPOT_LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(data) + "\n")
+        except Exception as e:
+            print(f"[Honeypot] Failed to write log: {e}")
+            
     def _handle_client(self, client: socket.socket, addr: tuple):
         """Gère une requête HTTP"""
         ip, port = addr
@@ -191,14 +219,19 @@ class HTTPHoneypot:
                 
                 # Log
                 geo_data = self.geoip.locate(ip)
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
-                self.db.insert_honeypot_log(
-                    service='HTTP',
-                    source_ip=ip,
-                    source_port=port,
-                    command=request_line,
-                    geo_data=geo_data
-                )
+                log_entry = {
+                    "timestamp": timestamp,
+                    "service": "HTTP",
+                    "source_ip": ip,
+                    "source_port": port,
+                    "command": request_line,
+                    "country": geo_data.get('country'),
+                    "city": geo_data.get('city')
+                }
+                
+                self._log_to_file(log_entry)
                 
                 print(f"[Honeypot HTTP] ⚠️ {ip} - {request_line}")
                 

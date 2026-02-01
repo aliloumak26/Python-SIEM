@@ -17,7 +17,7 @@ import sys
 # Ajouter le répertoire parent au path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from core.database import Database
+# Database removed
 from core.engine import SIEMEngine
 
 app = FastAPI(title="SIEM API", version="1.0.0")
@@ -31,8 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database
-db = Database()
+# Engine pour l'accès aux données
+engine = SIEMEngine()
 
 # WebSocket clients connectés
 class ConnectionManager:
@@ -74,42 +74,36 @@ async def root():
 @app.get("/api/alerts")
 async def get_alerts(limit: int = 100, type: str = None):
     """Récupère les alertes récentes"""
-    alerts = db.get_recent_alerts(limit=limit, attack_type=type)
+    alerts = engine.get_recent_alerts(limit=limit)
+    # Filtrage par type si demandé (fait en mémoire ici car pas de SQL)
+    if type:
+        alerts = [a for a in alerts if a.get('attack_type') == type]
     return {"alerts": alerts, "count": len(alerts)}
 
 @app.get("/api/stats")
 async def get_stats():
     """Récupère les statistiques"""
-    stats_by_type = db.get_stats_by_type(days=7)
-    total = sum(stats_by_type.values())
-    top_ips = db.get_top_attackers(limit=10)
-    timeline = db.get_attack_timeline(hours=24)
-    geo_data = db.get_geo_data()
-    
-    return {
-        "total": total,
-        "by_type": stats_by_type,
-        "top_ips": [{"ip": ip, "count": count} for ip, count in top_ips],
-        "timeline": timeline,
-        "geo_data": geo_data
-    }
+    return engine.get_statistics() # Retourne déjà le format attendu
 
 @app.get("/api/honeypot")
 async def get_honeypot_logs(limit: int = 100, service: str = None):
     """Récupère les logs honeypot"""
-    logs = db.get_recent_honeypot_logs(limit=limit, service=service)
+    logs = engine.get_honeypot_logs(limit=limit)
+    if service:
+        logs = [l for l in logs if l.get('service') == service]
     return {"logs": logs, "count": len(logs)}
 
 @app.get("/api/export/alerts")
 async def export_alerts(format: str = "json"):
     """Exporte les alertes (JSON ou CSV)"""
-    alerts = db.get_recent_alerts(limit=1000)
+    alerts = engine.get_recent_alerts(limit=1000)
     
     if format == "csv":
         import csv
         from io import StringIO
         
         output = StringIO()
+        # Flat dictionary for CSV
         writer = csv.DictWriter(output, fieldnames=alerts[0].keys() if alerts else [])
         writer.writeheader()
         writer.writerows(alerts)
@@ -157,7 +151,7 @@ async def broadcast_stats(stats: dict):
 @app.on_event("startup")
 async def startup_event():
     """Démarrage de l'API"""
-    print("[API] ✓ FastAPI démarrée")
+    print("[API] ✓ FastAPI démarrée (Mode Fichier)")
 
 @app.on_event("shutdown")
 async def shutdown_event():

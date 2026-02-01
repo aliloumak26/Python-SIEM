@@ -1,8 +1,8 @@
 import os
 import datetime
 import re
+import json
 from config.settings import settings
-from core.database import Database
 from utils.geoip import GeoIPLocator
 from utils.chiffrer import chiffrer_donnees
 
@@ -11,7 +11,7 @@ class AlertManager:
     
     def __init__(self):
         self.alert_log_path = settings.ALERTS_LOG_PATH
-        self.db = Database()
+        # Database removed
         self.geoip = GeoIPLocator()
         
         # Créer le fichier de log si nécessaire
@@ -34,6 +34,7 @@ class AlertManager:
         severity_map = {
             'SQL Injection': 'high',
             'XSS': 'medium',
+            'XSS injection': 'medium',
             'Brute Force': 'medium',
             'HTTP Error': 'low'
         }
@@ -54,10 +55,11 @@ class AlertManager:
         
         return 'unknown'
     
+    
     def log_alert(self, attack_type: str, pattern: str, line: str, 
                   ml_score: float = None, confidence: float = 1.0):
         """
-        Enregistre une alerte dans la DB et le fichier de log
+        Enregistre une alerte dans le fichier de log au format JSON
         """
         # Convert list of patterns to string if necessary
         if isinstance(pattern, list):
@@ -76,31 +78,35 @@ class AlertManager:
         # Calcul de sévérité
         severity = self.calculate_severity(attack_type, pattern)
         
-        # Insertion en base de données
-        alert_id = self.db.insert_alert(
-            attack_type=attack_type,
-            pattern=pattern,
-            source_ip=source_ip,
-            log_line=line.strip(),
-            severity=severity,
-            ml_score=ml_score,
-            confidence=confidence,
-            geo_data=geo_data
-        )
+        # Construction de l'objet alerte
+        alert_data = {
+            "id": int(datetime.datetime.now().timestamp() * 1000), # ID unique basé sur timestamp
+            "timestamp": timestamp,
+            "attack_type": attack_type,
+            "severity": severity,
+            "pattern": pattern,
+            "source_ip": source_ip,
+            "country": geo_data.get('country') if geo_data else None,
+            "city": geo_data.get('city') if geo_data else None,
+            "latitude": geo_data.get('latitude') if geo_data else None,
+            "longitude": geo_data.get('longitude') if geo_data else None,
+            "log_line": line.strip(),
+            "ml_score": ml_score,
+            "confidence": confidence
+        }
         
-        # Log fichier (pour compatibilité)
-        entry = f"[{timestamp}] [{severity.upper()}] {attack_type} | IP: {source_ip}"
-        if geo_data:
-            entry += f" ({geo_data['country']})"
-        entry += f" | Pattern: {pattern} | Line: {line.strip()}\n"
-        
-        with open(self.alert_log_path, "a", encoding="utf-8") as f:
-            f.write(entry)
+        # Écriture dans le fichier (JSON Lines)
+        # Note: On utilise 'a' pour append
+        try:
+            with open(self.alert_log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(alert_data) + "\n")
+                f.flush()
+                # os.fsync(f.fileno()) # Optionnel, peut ralentir
+            print(f"[AlertManager] Alert logged to file (JSON)")
+        except Exception as e:
+            print(f"[AlertManager] FAILED to write to alerts.log: {e}")
             
-        # Note: On ne rechiffre pas l'alerte ici pour éviter une boucle infinie 
-        # car le watcher lit déjà depuis chiffred.enc
-            
-        return alert_id
+        return alert_data["id"]
     
     def print_alert(self, attack_type: str, pattern: str, line: str):
         """Affiche une alerte (pour debug)"""

@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.engine import SIEMEngine
-from core.database import Database
+# Database removed
 from honeypot.ssh_honeypot import SSHHoneypot, HTTPHoneypot
 from api.main import app
 
@@ -38,9 +38,8 @@ class SIEMSystem:
         self.http_honeypot = None
         self.api_thread = None
         
-        # Initialiser la base de données
-        self.db = Database()
-        print("[SIEM] ✓ Base de données initialisée")
+        # Base de données retirée
+        print("[SIEM] ✓ Système initialisé (Mode Fichier)")
     
     def start(self):
         """Démarre tous les composants"""
