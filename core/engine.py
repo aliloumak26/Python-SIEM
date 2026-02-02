@@ -109,8 +109,7 @@ class SIEMEngine:
                         except Exception as e:
                             print(f"[Engine] Erreur ligne: {e}")
                             
-                            except Exception as e:
-                                print(f"[Engine] Erreur détecteur: {e}")
+
                     
                     last_pos = f.tell()
                 

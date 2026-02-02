@@ -29,6 +29,10 @@ PATTERNS = [
     r"\bwget\b",
     r"\bping\b",
     r"\bshutdown\b",
+    r"\.\./",
+    r"\.\.\\",
+    r"/etc/passwd",
+    r"c:\\windows\\",
 ]
 
     

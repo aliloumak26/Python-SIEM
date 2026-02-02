@@ -679,17 +679,18 @@ class ModernSIEM(QtWidgets.QMainWindow):
                             
                             stripped = log_line.strip()
                             
-                            # Afficher le log déchiffré
-                            self.signals.log_message.emit(stripped)
-    
-                            # Analyser avec les détecteurs
-                            attack_found = False
-                            
                             # Calculer le score ML pour ce log
                             ml_score = 0.0
                             ml_is_anomaly = False
                             if self.ml_detector.is_trained:
                                 ml_is_anomaly, ml_score = self.ml_detector.predict(log_line)
+                            
+                            # Afficher le log déchiffré + Score ML
+                            ml_text = f" [ML:{ml_score:.2f}]"
+                            self.signals.log_message.emit(stripped + ml_text)
+    
+                            # Analyser avec les détecteurs
+                            attack_found = False
                             
                             for detect in DETECTORS:
                                 try:
