@@ -27,7 +27,7 @@ L'interface s'ouvre dans une fenêtre dédiée avec tous les outils intégrés.
 
 ```powershell
 cd C:\Users\Pc\Documents\Python-SIEM
-python attacks-generator.py
+python attacks_generator.py
 ```
 
 Ce script génère continuellement des logs d'attaques (SQL Injection, XSS) dans `logs/access.log`.

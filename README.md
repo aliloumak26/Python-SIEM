@@ -64,7 +64,7 @@ Le système démarrera alors le dashboard web (http://localhost:8000).
 ### Générer des attaques simulées
 ```bash
 # Terminal séparé
-python attacks-generator.py
+python attacks_generator.py
 ```
 
 ### Tester le honeypot SSH

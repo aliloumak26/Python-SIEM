@@ -44,10 +44,15 @@ PATTERNS = [
     r"execute\s+xp",
     
     # Comments
-    r"--\s",
+    r"--",
     r"#\s*$",
     r"/\*",
     r"\*/",
+    
+    # Advanced functions / Generic keywords
+    r"\bJSON_EXTRACT\b",
+    r"'\s*AND\b",
+    r"'\s*OR\b",
     
     # Stacked queries
     r";\s*select",

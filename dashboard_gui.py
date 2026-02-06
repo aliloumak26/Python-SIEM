@@ -13,19 +13,8 @@ from PySide6.QtWidgets import QScrollArea
 from config.settings import settings
 from core.alert_manager import AlertManager
 
-# Import attack generator (handle file with dashes in name)
-import importlib.util
-import sys
-from pathlib import Path
-
-# Load the attacks-generator module
-spec = importlib.util.spec_from_file_location(
-    "attacks_generator",
-    Path(__file__).parent / "attacks-generator.py"
-)
-attacks_generator = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(attacks_generator)
-AttackGenerator = attacks_generator.AttackGenerator
+# Import attack generator
+from attacks_generator import AttackGenerator
 
 # Detecteurs
 from detectors.sqli import detect as detect_sqli
@@ -726,7 +715,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
                                     print(f"[Detector] Erreur {detect.__name__}: {det_err}")
                             
                             # Si aucune attaque regex mais ML détecte une anomalie
-                            if not attack_found and ml_is_anomaly and ml_score > 0.66:
+                            if not attack_found and ml_is_anomaly and ml_score > 0.60:
                                 self.alert_manager.log_alert("ML Anomaly", f"score:{ml_score:.2f}", log_line)
                                 
                                 alert = {

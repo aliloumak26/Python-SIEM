@@ -86,7 +86,7 @@ class SIEMSystem:
         print("🔌 API:            http://localhost:8000/api/stats")
         print("🍯 SSH Honeypot:   localhost:2222")
         print("🍯 HTTP Honeypot:  localhost:8888")
-        print("\n💡 Utilisez attacks-generator.py pour générer des attaques")
+        print("\n💡 Utilisez attacks_generator.py pour générer des attaques")
         print("💡 Appuyez sur Ctrl+C pour arrêter\n")
         print("="*60 + "\n")
         
