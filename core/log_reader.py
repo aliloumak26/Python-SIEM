@@ -49,7 +49,7 @@ def watch_access_log():
                 
             lines = decrypted_text.splitlines()
             
-            print(f"📖 Traitement de {len(lines)} logs...")
+            # print(f"📖 Traitement de {len(lines)} logs...")
             
             for line in lines:
                 for detector in DETECTORS:
@@ -66,11 +66,11 @@ def watch_access_log():
 
         except Exception as e:
             error_count += 1
-            print(f" Erreur ({error_count}/{max_errors_before_skip}) lors du traitement: {e}")
+            # print(f" Erreur ({error_count}/{max_errors_before_skip}) lors du traitement: {e}")
             
             if error_count >= max_errors_before_skip:
                 # Trop d'erreurs, on vide le fichier pour éviter une boucle infinie
-                print(" Trop d'erreurs, vidage du fichier pour éviter la boucle")
+                # print(" Trop d'erreurs, vidage du fichier pour éviter la boucle")
                 try:
                     with open(chiffred_path, "wb") as f:
                         f.write(b"")

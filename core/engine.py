@@ -41,25 +41,25 @@ class SIEMEngine:
                 try:
                     callback(data)
                 except Exception as e:
-                    print(f"[Engine] Erreur callback {event}: {e}")
+                    # print(f"[Engine] Erreur callback {event}: {e}")
     
     def start(self):
         """Démarre le moteur de surveillance"""
         if self.running:
-            print("[Engine] Déjà en cours d'exécution")
+            # print("[Engine] Déjà en cours d'exécution")
             return
         
         self.running = True
         self.watcher_thread = threading.Thread(target=self._watch_loop, daemon=True)
         self.watcher_thread.start()
-        print("[Engine] ✓ Moteur SIEM démarré")
+        # print("[Engine] ✓ Moteur SIEM démarré")
     
     def stop(self):
         """Arrête le moteur"""
         self.running = False
         if self.watcher_thread:
             self.watcher_thread.join(timeout=2)
-        print("[Engine] ✓ Moteur SIEM arrêté")
+        # print("[Engine] ✓ Moteur SIEM arrêté")
     
     def _watch_loop(self):
         """Boucle principale de surveillance des logs (Déchiffre les logs à la volée)"""
@@ -107,7 +107,7 @@ class SIEMEngine:
                                     # Une seule alerte par ligne
                                     break
                         except Exception as e:
-                            print(f"[Engine] Erreur ligne: {e}")
+                            # print(f"[Engine] Erreur ligne: {e}")
                             
 
                     
@@ -116,7 +116,7 @@ class SIEMEngine:
                 time.sleep(settings.SLEEP_INTERVAL)
             
             except Exception as e:
-                print(f"[Engine] Erreur surveillance: {e}")
+                # print(f"[Engine] Erreur surveillance: {e}")
                 time.sleep(1)
     
     def get_statistics(self) -> dict:

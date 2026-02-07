@@ -73,13 +73,25 @@ BEHAVIORAL_PAYLOADS = {
 #  GENERATOR LOGIC
 # =========================================================================================
 
+def generate_random_ip():
+    """Génère une adresse IP réaliste parmi plusieurs pays."""
+    # Liste de préfixes IP associés à des pays (Approximation)
+    prefixes = [
+        "190.162.", "82.112.", "45.33.",  "172.217.", "216.58.", # USA / Diverse
+        "105.101.", "197.112.", "41.201.", # DZ
+        "31.13.", "185.60.", # Europe
+        "103.21.", "111.90.", # Asie
+        "184.150.", "192.197.", "99.224." # Canada
+    ]
+    return f"{random.choice(prefixes)}{random.randint(1,254)}.{random.randint(1,254)}"
+
 def generate_log_entry(attack_type, payload):
     """
     Génère une ligne de log réaliste contenant l'attaque.
     Format unifié: TIMESTAMP  IP  METHOD URL BODY STATUS DURATION
     """
     timestamp = datetime.now().isoformat() + "Z"
-    ip = f"45.33.{random.randint(1,255)}.{random.randint(1,255)}" if random.random() > 0.5 else "::1"
+    ip = generate_random_ip() if random.random() > 0.1 else "127.0.0.1"
     
     method = "GET"
     path = "/"
@@ -201,7 +213,8 @@ class AttackGenerator:
                     
                     timestamp = datetime.now().isoformat() + "Z"
                     duration = f"{random.randint(5, 50)}ms"
-                    log_line = f"{timestamp}  ::1  {method} {path}{body}  200  {duration}\n"
+                    ip = generate_random_ip() if random.random() > 0.2 else "127.0.0.1"
+                    log_line = f"{timestamp}  {ip}  {method} {path}{body}  200  {duration}\n"
                     self._write_log(log_line, "Normal Traffic", f"{method} {path}")
                     time.sleep(random.uniform(self.sleep_interval * 0.5, self.sleep_interval * 1.5))
                     continue

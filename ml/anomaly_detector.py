@@ -118,7 +118,7 @@ class AnomalyDetector:
         """
         Entraîne le modèle sur des logs normaux
         """
-        print("[ML] Préparation des données d'entraînement...")
+        # print("[ML] Préparation des données d'entraînement...")
         
         X = []
         for log in normal_logs:
@@ -128,12 +128,12 @@ class AnomalyDetector:
         X = np.array(X)
         
         # Initialiser et entraîner le scaler
-        print("[ML] Normalisation des caractéristiques...")
+        # print("[ML] Normalisation des caractéristiques...")
         self.scaler = StandardScaler()
         X_scaled = self.scaler.fit_transform(X)
         
         # Créer et entraîner le modèle
-        print("[ML] Entraînement de IsolationForest...")
+        # print("[ML] Entraînement de IsolationForest...")
         self.model = IsolationForest(
             contamination=contamination,
             random_state=42,
@@ -144,7 +144,7 @@ class AnomalyDetector:
         self.model.fit(X_scaled)
         self.is_trained = True
         
-        print(f"[ML] ✓ Modèle entraîné sur {len(X)} exemples")
+        # print(f"[ML] ✓ Modèle entraîné sur {len(X)} exemples")
     
     def predict(self, log_line: str) -> Tuple[bool, float]:
         """
@@ -184,13 +184,13 @@ class AnomalyDetector:
             
             return is_anomaly, score
         except Exception as e:
-            print(f"[ML] Erreur prédiction: {e}")
+            # print(f"[ML] Erreur prédiction: {e}")
             return False, 0.0
     
     def save_model(self):
         """Sauvegarde le modèle et le scaler"""
         if self.model is None or self.scaler is None:
-            print("[ML] Aucun modèle/scaler à sauvegarder")
+            # print("[ML] Aucun modèle/scaler à sauvegarder")
             return
         
         try:
@@ -199,11 +199,12 @@ class AnomalyDetector:
             with open(self.scaler_path, 'wb') as f:
                 pickle.dump(self.scaler, f)
             
-            print(f"[ML] + Modèle sauvegardé: {self.model_path}")
-            print(f"[ML] + Scaler sauvegardé: {self.scaler_path}")
+            # print(f"[ML] + Modèle sauvegardé: {self.model_path}")
+            # print(f"[ML] + Scaler sauvegardé: {self.scaler_path}")
         except Exception as e:
-            print(f"[ML] Erreur sauvegarde: {e}")
-    
+            # print(f"[ML] Erreur sauvegarde: {e}")
+            pass
+
     def load_model(self):
         """Charge un modèle et un scaler existants"""
         try:
@@ -217,12 +218,12 @@ class AnomalyDetector:
             
             if self.model is not None and self.scaler is not None:
                 self.is_trained = True
-                print(f"[ML] + Modèle et Scaler chargés")
+                # print(f"[ML] + Modèle et Scaler chargés")
             else:
                 self.is_trained = False
         
         except Exception as e:
-            print(f"[ML] Erreur chargement: {e}")
+            # print(f"[ML] Erreur chargement: {e}")
             self.model = None
             self.scaler = None
             self.is_trained = False

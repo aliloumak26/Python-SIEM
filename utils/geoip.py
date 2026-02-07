@@ -54,7 +54,8 @@ class GeoIPLocator:
                     return geo_data
         
         except Exception as e:
-            print(f"[GeoIP] Erreur pour {ip}: {e}")
+            # print(f"GeoIP Error for {ip}: {e}")
+            pass
         
         # Fallback
         fallback = {

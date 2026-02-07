@@ -161,29 +161,29 @@ def generate_attack_logs(count: int = 200) -> list:
     return logs
 
 def main():
-    print("=" * 60)
-    print("ENTRAÎNEMENT AMÉLIORÉ DU MODÈLE ML - SIEM")
-    print("=" * 60)
+    # print("=" * 60)
+    # print("ENTRAÎNEMENT AMÉLIORÉ DU MODÈLE ML - SIEM")
+    # print("=" * 60)
     
     # 1. Générer les données
-    print("\n[1/4] Génération des données d'entraînement (Logs diversifiés)...")
+    # print("\n[1/4] Génération des données d'entraînement (Logs diversifiés)...")
     train_normal = generate_normal_logs(5000) # Augmenté
     valid_normal = generate_normal_logs(500)
     valid_attacks = generate_attack_logs(500)
-    print(f"  ✓ {len(train_normal)} logs normaux pour l'entraînement")
-    print(f"  ✓ {len(valid_normal)} logs normaux pour la validation")
-    print(f"  ✓ {len(valid_attacks)} logs d'attaques pour la validation")
+    # print(f"  ✓ {len(train_normal)} logs normaux pour l'entraînement")
+    # print(f"  ✓ {len(valid_normal)} logs normaux pour la validation")
+    # print(f"  ✓ {len(valid_attacks)} logs d'attaques pour la validation")
     
     # 2. Entraîner le modèle
-    print("\n[2/4] Entraînement du détecteur d'anomalies (Isolation Forest + Scaler)...")
+    # print("\n[2/4] Entraînement du détecteur d'anomalies (Isolation Forest + Scaler)...")
     detector = AnomalyDetector()
     # Contamination faible (0.5%) car nos logs générés sont "purs"
     detector.train(train_normal, contamination=0.005)
     
     # 3. Évaluation précise
-    print("\n[3/4] Évaluation de la précision du modèle...")
+    # print("\n[3/4] Évaluation de la précision du modèle...")
     
-    print("\n  Test sur logs NORMRAUX (Faux Positifs):")
+    # print("\n  Test sur logs NORMRAUX (Faux Positifs):")
     fp = 0
     normal_scores = []
     for log in valid_normal:
@@ -193,10 +193,10 @@ def main():
     
     fp_rate = (fp / len(valid_normal)) * 100
     avg_normal_score = sum(normal_scores) / len(normal_scores)
-    print(f"    - Taux de Faux Positifs: {fp_rate:.1f}% ({fp}/{len(valid_normal)})")
-    print(f"    - Score moyen (Normal): {avg_normal_score:.3f}")
+    # print(f"    - Taux de Faux Positifs: {fp_rate:.1f}% ({fp}/{len(valid_normal)})")
+    # print(f"    - Score moyen (Normal): {avg_normal_score:.3f}")
     
-    print("\n  Test sur logs d'ATTAQUE (Vrais Positifs):")
+    # print("\n  Test sur logs d'ATTAQUE (Vrais Positifs):")
     tp = 0
     attack_scores = []
     for log in valid_attacks:
@@ -206,25 +206,25 @@ def main():
     
     tp_rate = (tp / len(valid_attacks)) * 100
     avg_attack_score = sum(attack_scores) / len(attack_scores)
-    print(f"    - Taux de Vrais Positifs (Détection): {tp_rate:.1f}% ({tp}/{len(valid_attacks)})")
-    print(f"    - Score moyen (Attaque): {avg_attack_score:.3f}")
+    # print(f"    - Taux de Vrais Positifs (Détection): {tp_rate:.1f}% ({tp}/{len(valid_attacks)})")
+    # print(f"    - Score moyen (Attaque): {avg_attack_score:.3f}")
     
     # 4. Sauvegarde
-    print("\n[4/4] Sauvegarde du modèle et du scaler...")
+    # print("\n[4/4] Sauvegarde du modèle et du scaler...")
     detector.save_model()
     
-    print("\n" + "=" * 60)
-    print("RÉSUMÉ FINAL")
-    print("=" * 60)
+    # print("\n" + "=" * 60)
+    # print("RÉSUMÉ FINAL")
+    # print("=" * 60)
     if tp_rate > 95 and fp_rate < 5:
-        print("  ÉVALUATION: EXCELLENTE")
+        # print("  ÉVALUATION: EXCELLENTE")
     elif tp_rate > 80 and fp_rate < 10:
-        print("  ÉVALUATION: BONNE")
+        # print("  ÉVALUATION: BONNE")
     else:
-        print("  ÉVALUATION: À AMÉLIORER")
+        # print("  ÉVALUATION: À AMÉLIORER")
         
-    print(f"\n✓ Entraînement terminé avec succès!")
-    print("=" * 60)
+    # print(f"\n✓ Entraînement terminé avec succès!")
+    # print("=" * 60)
 
 if __name__ == "__main__":
     main()

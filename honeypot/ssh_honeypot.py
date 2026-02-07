@@ -25,18 +25,18 @@ class SSHHoneypot:
     def start(self):
         """Démarre le honeypot"""
         if self.running:
-            print(f"[Honeypot SSH] Déjà en cours sur {self.host}:{self.port}")
+            # print(f"[Honeypot SSH] Déjà en cours sur {self.host}:{self.port}")
             return
         
         self.running = True
         self.server_thread = threading.Thread(target=self._run_server, daemon=True)
         self.server_thread.start()
-        print(f"[Honeypot SSH] ✓ Démarré sur {self.host}:{self.port}")
+        # print(f"[Honeypot SSH] ✓ Démarré sur {self.host}:{self.port}")
     
     def stop(self):
         """Arrête le honeypot"""
         self.running = False
-        print("[Honeypot SSH] ✓ Arrêté")
+        # print("[Honeypot SSH] ✓ Arrêté")
     
     def _run_server(self):
         """Exécute le serveur honeypot"""
@@ -59,10 +59,10 @@ class SSHHoneypot:
                     continue
                 except Exception as e:
                     if self.running:
-                        print(f"[Honeypot SSH] Erreur accept: {e}")
+                        # print(f"[Honeypot SSH] Erreur accept: {e}")
         
         except Exception as e:
-            print(f"[Honeypot SSH] Erreur serveur: {e}")
+            # print(f"[Honeypot SSH] Erreur serveur: {e}")
         finally:
             try:
                 server.close()
@@ -88,7 +88,7 @@ class SSHHoneypot:
                 geo_data=geo_data
             )
             
-            print(f"[Honeypot SSH] ⚠️ Connexion depuis {ip}:{port} ({geo_data.get('country', 'Unknown')})")
+            # print(f"[Honeypot SSH] ⚠️ Connexion depuis {ip}:{port} ({geo_data.get('country', 'Unknown')})")
             
             # Log chiffré
             try:
@@ -104,12 +104,12 @@ class SSHHoneypot:
                 data = client.recv(1024)
                 if data:
                     # Logger les données (potentiellement username/password)
-                    print(f"[Honeypot SSH] Données reçues de {ip}: {len(data)} bytes")
+                    # print(f"[Honeypot SSH] Données reçues de {ip}: {len(data)} bytes")
             except socket.timeout:
                 pass
         
         except Exception as e:
-            print(f"[Honeypot SSH] Erreur client {ip}: {e}")
+            # print(f"[Honeypot SSH] Erreur client {ip}: {e}")
         
         finally:
             client.close()
@@ -129,18 +129,18 @@ class HTTPHoneypot:
     def start(self):
         """Démarre le honeypot"""
         if self.running:
-            print(f"[Honeypot HTTP] Déjà en cours sur {self.host}:{self.port}")
+            # print(f"[Honeypot HTTP] Déjà en cours sur {self.host}:{self.port}")
             return
         
         self.running = True
         self.server_thread = threading.Thread(target=self._run_server, daemon=True)
         self.server_thread.start()
-        print(f"[Honeypot HTTP] ✓ Démarré sur {self.host}:{self.port}")
+        # print(f"[Honeypot HTTP] ✓ Démarré sur {self.host}:{self.port}")
     
     def stop(self):
         """Arrête le honeypot"""
         self.running = False
-        print("[Honeypot HTTP] ✓ Arrêté")
+        # print("[Honeypot HTTP] ✓ Arrêté")
     
     def _run_server(self):
         """Exécute le serveur HTTP basique"""
@@ -163,10 +163,10 @@ class HTTPHoneypot:
                     continue
                 except Exception as e:
                     if self.running:
-                        print(f"[Honeypot HTTP] Erreur accept: {e}")
+                        # print(f"[Honeypot HTTP] Erreur accept: {e}")
         
         except Exception as e:
-            print(f"[Honeypot HTTP] Erreur serveur: {e}")
+            # print(f"[Honeypot HTTP] Erreur serveur: {e}")
         finally:
             try:
                 server.close()
@@ -200,7 +200,7 @@ class HTTPHoneypot:
                     geo_data=geo_data
                 )
                 
-                print(f"[Honeypot HTTP] ⚠️ {ip} - {request_line}")
+                # print(f"[Honeypot HTTP] ⚠️ {ip} - {request_line}")
                 
                 # Log chiffré
                 try:
@@ -212,7 +212,7 @@ class HTTPHoneypot:
                 client.send(response.encode())
         
         except Exception as e:
-            print(f"[Honeypot HTTP] Erreur client {ip}: {e}")
+            # print(f"[Honeypot HTTP] Erreur client {ip}: {e}")
         
         finally:
             client.close()

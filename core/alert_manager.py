@@ -104,10 +104,10 @@ class AlertManager:
     
     def print_alert(self, attack_type: str, pattern: str, line: str):
         """Affiche une alerte (pour debug)"""
-        print("⚠️ ALERT ⚠️")
-        print(f"Type    : {attack_type}")
-        print(f"Pattern : {pattern}")
-        print(f"Line    : {line.strip()}")
-        print("-" * 60)
+        # print("⚠️ ALERT ⚠️")
+        # print(f"Type    : {attack_type}")
+        # print(f"Pattern : {pattern}")
+        # print(f"Line    : {line.strip()}")
+        # print("-" * 60)
 
 

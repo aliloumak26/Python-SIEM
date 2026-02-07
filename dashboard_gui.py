@@ -29,6 +29,11 @@ from detectors.crlf import detect as detect_crlf
 # ML Anomaly Detector
 from ml.anomaly_detector import AnomalyDetector
 
+from PySide6.QtWebEngineWidgets import QWebEngineView
+import folium
+import io
+from geo_finder import get_ip_info
+
 DETECTORS = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf]
 
 
@@ -310,6 +315,7 @@ class AlertSignals(QtCore.QObject):
     new_alert = Signal(dict)
     stats_changed = Signal(dict)
     log_message = Signal(str)
+    refresh_map = Signal()
 
 
 # =====================================================================
@@ -344,12 +350,14 @@ class ModernSIEM(QtWidgets.QMainWindow):
         self.ml_scores = []  # Store recent ML scores for average
 
         self.all_alerts = []
+        self.alert_coords = [] # Liste des coordonnées pour la map
 
         self.build_ui()
 
         self.signals.new_alert.connect(self.add_alert_to_table)
         self.signals.stats_changed.connect(self.update_stats_cards)
         self.signals.log_message.connect(self.append_log)
+        self.signals.refresh_map.connect(self.update_map)
         
         self.attack_generator = AttackGenerator(sleep_interval=2)
 
@@ -453,18 +461,30 @@ class ModernSIEM(QtWidgets.QMainWindow):
         alerts_header.setObjectName("SectionLabel")
         layout.addWidget(alerts_header)
 
-        self.table = QtWidgets.QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(["Timestamp", "Type", "Score ML", "Pattern", "Ligne"])
+        self.table = QtWidgets.QTableWidget(0, 6)
+        self.table.setHorizontalHeaderLabels(["Timestamp", "Type", "Score ML", "Pays", "Ville", "Pattern"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(5, QtWidgets.QHeaderView.Stretch)
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table.setShowGrid(False)
         self.table.verticalHeader().setVisible(False)
         self.table.setMinimumHeight(300)
         layout.addWidget(self.table)
+
+        # ============ WORLD MAP SECTION =============
+        map_label = QtWidgets.QLabel("Carte des Menaces")
+        map_label.setObjectName("SectionLabel")
+        layout.addWidget(map_label)
+
+        self.web_view = QWebEngineView()
+        self.web_view.setMinimumHeight(400)
+        layout.addWidget(self.web_view)
+        self.update_map() # Initial map
 
         # ============ LIVE LOG VIEW =============
         log_header = QtWidgets.QLabel("Logs")
@@ -593,14 +613,57 @@ class ModernSIEM(QtWidgets.QMainWindow):
                 score_item.setForeground(QtGui.QColor("#22c55e"))  # Vert
             self.table.setItem(row, 2, score_item)
             
+            # Pays
+            country = a.get("country", "-")
+            country_item = QtWidgets.QTableWidgetItem(country)
+            country_item.setForeground(QtGui.QColor("#e5e7eb"))
+            self.table.setItem(row, 3, country_item)
+            
+            # Ville
+            city = a.get("city", "-")
+            if city == "Unknown": city = "-"
+            city_item = QtWidgets.QTableWidgetItem(city)
+            city_item.setForeground(QtGui.QColor("#9ca3af"))
+            self.table.setItem(row, 4, city_item)
+            
             pattern_item = QtWidgets.QTableWidgetItem(a["pattern"])
             pattern_item.setForeground(QtGui.QColor("#fbbf24"))
-            self.table.setItem(row, 3, pattern_item)
+            self.table.setItem(row, 5, pattern_item)
+
+    # -----------------------------------------------------------
+    #   MAP UPDATE
+    # -----------------------------------------------------------
+    @Slot()
+    def update_map(self):
+        """Met à jour la carte avec les marqueurs d'alertes."""
+        try:
+            m = folium.Map(
+                location=[20, 0], 
+                zoom_start=2, 
+                tiles="CartoDB dark_matter",
+                no_wrap=True,
+                min_zoom=2
+            )
             
-            line_text = a["line"][:80] + "..." if len(a["line"]) > 80 else a["line"]
-            line_item = QtWidgets.QTableWidgetItem(line_text)
-            line_item.setForeground(QtGui.QColor("#6b7280"))
-            self.table.setItem(row, 4, line_item)
+            for coord in self.alert_coords:
+                if coord != [0, 0]:
+                    folium.CircleMarker(
+                        location=coord,
+                        radius=6,
+                        color="#ef4444",
+                        weight=2,
+                        fill=True,
+                        fill_color="#ef4444",
+                        fill_opacity=0.7
+                    ).add_to(m)
+
+            data = io.BytesIO()
+            m.save(data, close_file=False)
+            html_content = data.getvalue().decode()
+            self.web_view.setHtml(html_content)
+            print(f"[MAP] Mise à jour effectuée avec {len(self.alert_coords)} marqueurs")
+        except Exception as e:
+            print(f"[MAP ERROR] {e}")
 
     # -----------------------------------------------------------
     #   LOG APPEND
@@ -677,60 +740,58 @@ class ModernSIEM(QtWidgets.QMainWindow):
                             # Afficher le log déchiffré + Score ML
                             ml_text = f" [ML:{ml_score:.2f}]"
                             self.signals.log_message.emit(stripped + ml_text)
-    
-                            # Analyser avec les détecteurs
+                            # Extraction de l'IP (TIMESTAMP IP METHOD ...)
+                            parts = stripped.split()
+                            ip_addr = parts[1] if len(parts) > 1 else "127.0.0.1"
+
+                            # Geolocation (une seule fois par ligne)
+                            geo_info = get_ip_info(ip_addr)
+                            city_str = f" ({geo_info['city']})" if geo_info['city'] != "Unknown" else ""
+
+                            # Analyse avec les détecteurs
                             attack_found = False
+                            attack_type = ""
+                            pattern = ""
                             
                             for detect in DETECTORS:
-                                try:
-                                    found, pattern, attack_type = detect(log_line)
-                                    if not found:
-                                        continue
-        
-                                    if isinstance(pattern, list):
-                                        pattern = ", ".join(str(p) for p in pattern)
-        
-                                    self.alert_manager.log_alert(attack_type, pattern, log_line)
-        
-                                    alert = {
-                                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                        "type": attack_type,
-                                        "pattern": pattern,
-                                        "line": stripped,
-                                        "ml_score": ml_score
-                                    }
-        
-                                    if attack_type in self.stats:
-                                        self.stats[attack_type] += 1
-                                    else:
-                                        self.stats["Others"] += 1
-        
-                                    self.stats["Total"] += 1
-        
-                                    self.signals.new_alert.emit(alert)
-                                    self.signals.stats_changed.emit(self.stats)
+                                found, details, a_type = detect(log_line)
+                                if found:
                                     attack_found = True
+                                    attack_type = a_type
+                                    pattern = str(details[0]) if details else "Pattern inconnu"
                                     break
-                                except Exception as det_err:
-                                    print(f"[Detector] Erreur {detect.__name__}: {det_err}")
                             
-                            # Si aucune attaque regex mais ML détecte une anomalie
-                            if not attack_found and ml_is_anomaly and ml_score > 0.60:
-                                self.alert_manager.log_alert("ML Anomaly", f"score:{ml_score:.2f}", log_line)
-                                
+                            # Si attaque détectée ou anomalie ML forte (> 0.60)
+                            if attack_found or (ml_is_anomaly and ml_score > 0.60):
                                 alert = {
                                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                    "type": "ML Anomaly",
-                                    "pattern": f"Anomalie détectée (score: {ml_score:.2f})",
+                                    "type": attack_type if attack_found else "ML Anomaly",
+                                    "pattern": pattern if attack_found else f"Score: {ml_score:.2f}",
                                     "line": stripped,
-                                    "ml_score": ml_score
+                                    "ml_score": ml_score,
+                                    "country": geo_info["country"],
+                                    "city": geo_info["city"]
                                 }
                                 
-                                self.stats["ML Anomaly"] += 1
+                                if attack_found:
+                                    self.alert_manager.log_alert(attack_type, pattern, log_line)
+                                    if attack_type in self.stats: self.stats[attack_type] += 1
+                                    else: self.stats["Others"] += 1
+                                else:
+                                    self.alert_manager.log_alert("ML Anomaly", f"score:{ml_score:.2f}", log_line)
+                                    self.stats["ML Anomaly"] += 1
+                                    
                                 self.stats["Total"] += 1
+                                
+                                # Mise à jour coordonnées pour la carte
+                                if geo_info["coords"] != [0, 0]:
+                                    self.alert_coords.append(geo_info["coords"])
+                                    self.signals.refresh_map.emit()
                                 
                                 self.signals.new_alert.emit(alert)
                                 self.signals.stats_changed.emit(self.stats)
+                                
+                                print(f"[GEO] Alerte: {alert['type']} depuis {geo_info['country']}{city_str} ({ip_addr}) bloquée")
                                     
                         except Exception as e:
                             print(f"[Watcher] Erreur déchiffrement: {e}")
@@ -767,6 +828,11 @@ class ModernSIEM(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if self.attack_generator.is_running():
             self.attack_generator.stop()
+        
+        # Fermer proprement le reader de geo_finder
+        from geo_finder import close_reader
+        close_reader()
+        
         event.accept()
 
 
