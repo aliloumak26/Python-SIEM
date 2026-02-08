@@ -33,6 +33,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 import folium
 import io
 from geo_finder import get_ip_info
+from PySide6.QtCharts import QChart, QChartView, QPieSeries, QPieSlice
 
 DETECTORS = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf]
 
@@ -286,6 +287,42 @@ QPlainTextEdit QScrollBar::handle:vertical {
     border-radius: 4px;
 }
 
+
+/* ============ STATS SECTION ============ */
+QFrame#StatBox {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+QLabel#StatTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 5px;
+}
+
+QListWidget#IPList {
+    background: transparent;
+    border: none;
+    color: #e5e7eb;
+}
+
+QListWidget#IPList::item {
+    padding: 8px;
+    border-bottom: 1px solid #1f2937;
+}
+
+QLabel#IPBadge {
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
 /* ============ SCROLLBARS ============ */
 QScrollBar:vertical {
     background: #0f1419;
@@ -343,6 +380,9 @@ class ModernSIEM(QtWidgets.QMainWindow):
             "Total": 0
         }
         
+        self.country_counts = {}
+        self.ip_counts = {}
+
         # ML Detector avec chemin absolu
         base_dir = os.path.dirname(os.path.abspath(__file__))
         model_path = os.path.join(base_dir, 'ml', 'anomaly_model.pkl')
@@ -456,6 +496,53 @@ class ModernSIEM(QtWidgets.QMainWindow):
         self.stop_generator_btn.setEnabled(False)
         control_layout.addWidget(self.stop_generator_btn)
 
+        # ============ NEW STATS SECTION (PIE & IPs) =============
+        stats_layout = QtWidgets.QHBoxLayout()
+        stats_layout.setSpacing(16)
+        layout.addLayout(stats_layout)
+
+        # Col 1: Top 5 Pays
+        self.country_frame = QtWidgets.QFrame()
+        self.country_frame.setObjectName("StatBox")
+        self.country_frame.setMinimumHeight(350)
+        country_vbox = QtWidgets.QVBoxLayout(self.country_frame)
+        
+        country_title = QtWidgets.QLabel("TOP 5 PAYS ATTAQUANTS")
+        country_title.setObjectName("StatTitle")
+        country_vbox.addWidget(country_title)
+
+        self.pie_series = QPieSeries()
+        self.chart = QChart()
+        self.chart.addSeries(self.pie_series)
+        self.chart.setMargins(QtCore.QMargins(0, 0, 0, 0))
+        self.chart.setBackgroundVisible(False)
+        self.chart.legend().setVisible(True)
+        self.chart.legend().setAlignment(Qt.AlignRight)
+        self.chart.legend().setLabelColor(QtGui.QColor("#9ca3af"))
+
+        self.chart_view = QChartView(self.chart)
+        self.chart_view.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.chart_view.setStyleSheet("background: transparent;")
+        country_vbox.addWidget(self.chart_view)
+        
+        stats_layout.addWidget(self.country_frame, 1)
+
+        # Col 2: Top 10 IPs
+        self.ip_frame = QtWidgets.QFrame()
+        self.ip_frame.setObjectName("StatBox")
+        self.ip_frame.setMinimumHeight(300)
+        ip_vbox = QtWidgets.QVBoxLayout(self.ip_frame)
+
+        ip_title = QtWidgets.QLabel("TOP 10 IPS ATTAQUANTES")
+        ip_title.setObjectName("StatTitle")
+        ip_vbox.addWidget(ip_title)
+
+        self.ip_list_widget = QtWidgets.QListWidget()
+        self.ip_list_widget.setObjectName("IPList")
+        ip_vbox.addWidget(self.ip_list_widget)
+
+        stats_layout.addWidget(self.ip_frame, 1)
+
         # ============ ALERTS SECTION =============
         alerts_header = QtWidgets.QLabel("Alertes récentes")
         alerts_header.setObjectName("SectionLabel")
@@ -568,10 +655,79 @@ class ModernSIEM(QtWidgets.QMainWindow):
     @Slot(dict)
     def add_alert_to_table(self, alert):
         self.all_alerts.append(alert)
+        
+        # Update Country stats
+        country = alert.get("country", "Unknown")
+        self.country_counts[country] = self.country_counts.get(country, 0) + 1
+        self.update_country_chart()
+
+        # Update IP stats
+        parts = alert["line"].split()
+        ip_addr = parts[1] if len(parts) > 1 else "127.0.0.1"
+        
+        if ip_addr != "127.0.0.1":
+            self.ip_counts[ip_addr] = self.ip_counts.get(ip_addr, 0) + 1
+            self.update_ip_list()
+
         self.apply_filter()
         # Scroll to last row (newest alert)
         if self.table.rowCount() > 0:
             self.table.scrollToBottom()
+
+    def update_country_chart(self):
+        self.pie_series.clear()
+        self.pie_series.setPieSize(0.65) # Laisse de la place pour les labels externes
+        # Sort and take top 5
+        sorted_countries = sorted(self.country_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"]
+        
+        for i, (country, count) in enumerate(sorted_countries):
+            slice = self.pie_series.append(f"{country} ({count})", count)
+            if i < len(colors):
+                slice.setBrush(QtGui.QColor(colors[i]))
+            slice.setLabelVisible(True)
+            slice.setLabelPosition(QPieSlice.LabelOutside)
+            slice.setLabelColor(QtGui.QColor("#f1f5f9"))
+
+    def update_ip_list(self):
+        self.ip_list_widget.clear()
+        # Sort and take top 10
+        sorted_ips = sorted(self.ip_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        for ip, count in sorted_ips:
+            item = QtWidgets.QListWidgetItem()
+            item.setSizeHint(QtCore.QSize(0, 45))  # Fixe la hauteur pour éviter l'écrasement
+            self.ip_list_widget.addItem(item)
+            
+            # Custom widget for the list item
+            widget = QtWidgets.QWidget()
+            h_layout = QtWidgets.QHBoxLayout(widget)
+            h_layout.setContentsMargins(12, 0, 12, 0)
+            
+            ip_label = QtWidgets.QLabel(ip)
+            ip_label.setStyleSheet("font-weight: 700; color: #ffffff; font-size: 14px;")
+            
+            count_label = QtWidgets.QLabel(f"{count} attaques")
+            count_label.setStyleSheet("color: #94a3b8; font-size: 12px; font-weight: 600;")
+            
+            badge = QtWidgets.QLabel("DANGER")
+            badge.setStyleSheet("""
+                background-color: #ef4444;
+                color: white;
+                font-size: 10px;
+                font-weight: 800;
+                padding: 3px 8px;
+                border-radius: 4px;
+            """)
+            
+            h_layout.addWidget(ip_label)
+            h_layout.addStretch()
+            h_layout.addWidget(count_label)
+            h_layout.addSpacing(15)
+            h_layout.addWidget(badge)
+            
+            self.ip_list_widget.setItemWidget(item, widget)
 
     def apply_filter(self):
         selected = self.filter_box.currentText()

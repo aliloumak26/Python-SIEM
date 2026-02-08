@@ -91,7 +91,7 @@ def generate_log_entry(attack_type, payload):
     Format unifié: TIMESTAMP  IP  METHOD URL BODY STATUS DURATION
     """
     timestamp = datetime.now().isoformat() + "Z"
-    ip = generate_random_ip() if random.random() > 0.1 else "127.0.0.1"
+    ip = generate_random_ip()
     
     method = "GET"
     path = "/"
@@ -213,7 +213,7 @@ class AttackGenerator:
                     
                     timestamp = datetime.now().isoformat() + "Z"
                     duration = f"{random.randint(5, 50)}ms"
-                    ip = generate_random_ip() if random.random() > 0.2 else "127.0.0.1"
+                    ip = generate_random_ip()
                     log_line = f"{timestamp}  {ip}  {method} {path}{body}  200  {duration}\n"
                     self._write_log(log_line, "Normal Traffic", f"{method} {path}")
                     time.sleep(random.uniform(self.sleep_interval * 0.5, self.sleep_interval * 1.5))
