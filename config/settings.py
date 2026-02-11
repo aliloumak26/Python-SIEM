@@ -14,5 +14,6 @@ class Settings:
     )
     SLEEP_INTERVAL = float(os.environ.get("SLEEP_INTERVAL", 0.5))
     FERNET_KEY = os.getenv("FERNET_KEY") 
+    API_KEY = os.getenv("API_KEY")
     CHIFFRED_PATH = os.getenv("CHIFFRED_PATH", "chiffred.enc")
 settings = Settings()

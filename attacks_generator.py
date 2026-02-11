@@ -83,6 +83,11 @@ def generate_random_ip():
         "103.21.", "111.90.", # Asie
         "184.150.", "192.197.", "99.224." # Canada
     ]
+    # IPs de test spécifiques fournies par l'utilisateur
+    test_ips = ["64.225.66.74", "91.224.92.54", "45.92.1.86", "124.163.255.210", "190.184.222.63"]
+    if random.random() < 0.3: # 30% de chance d'utiliser une IP de test
+        return random.choice(test_ips)
+    
     return f"{random.choice(prefixes)}{random.randint(1,254)}.{random.randint(1,254)}"
 
 def generate_log_entry(attack_type, payload):

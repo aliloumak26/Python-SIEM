@@ -25,6 +25,7 @@ from detectors.csrf import detect as detect_csrf
 from detectors.file_upload import detect as detect_file_upload
 from detectors.os_injection import detect as detect_os_injection
 from detectors.crlf import detect as detect_crlf
+from detectors.ip import detect_ip_reputation
 
 # ML Anomaly Detector
 from ml.anomaly_detector import AnomalyDetector
@@ -35,7 +36,7 @@ import io
 from geo_finder import get_ip_info
 from PySide6.QtCharts import QChart, QChartView, QPieSeries, QPieSlice
 
-DETECTORS = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf]
+DETECTORS = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf, detect_ip_reputation]
 
 
 # =====================================================================
@@ -376,6 +377,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
             "XSS": 0,
             "Brute Force": 0,
             "ML Anomaly": 0,
+            "Malicious IP": 0,
             "Others": 0,
             "Total": 0
         }
@@ -473,7 +475,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
         control_layout.addWidget(filter_label)
 
         self.filter_box = QtWidgets.QComboBox()
-        self.filter_box.addItems(["Toutes", "SQL Injection", "XSS", "Brute Force", "ML Anomaly", "CSRF", "File Upload", "OS Injection", "CRLF"])
+        self.filter_box.addItems(["Toutes", "SQL Injection", "XSS", "Brute Force", "ML Anomaly", "Malicious IP", "CSRF", "File Upload", "OS Injection", "CRLF"])
         self.filter_box.currentTextChanged.connect(self.apply_filter)
         control_layout.addWidget(self.filter_box)
         
@@ -753,6 +755,8 @@ class ModernSIEM(QtWidgets.QMainWindow):
                 type_item.setForeground(QtGui.QColor("#3b82f6"))
             elif a["type"] == "ML Anomaly":
                 type_item.setForeground(QtGui.QColor("#8b5cf6"))
+            elif a["type"] == "Malicious IP":
+                type_item.setForeground(QtGui.QColor("#ec4899"))  # Rose/Pink pour IP malveillante
             else:
                 type_item.setForeground(QtGui.QColor("#6b7280"))
             self.table.setItem(row, 1, type_item)
@@ -910,6 +914,12 @@ class ModernSIEM(QtWidgets.QMainWindow):
                             pattern = ""
                             
                             for detect in DETECTORS:
+                                # Optimisation: On ne vérifie l'IP via l'API que si le trafic semble 
+                                # un minimum suspect (ou si c'est un détecteur local gratuit)
+                                if detect == detect_ip_reputation:
+                                    if not ml_is_anomaly and ml_score < 0.02:
+                                        continue  # Skip AbuseIPDB pour le trafic extrêmement propre
+                                
                                 found, details, a_type = detect(log_line)
                                 if found:
                                     attack_found = True

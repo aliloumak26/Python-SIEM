@@ -6,6 +6,7 @@ from config.settings import settings
 from core.alert_manager import AlertManager
 from core.database import Database
 from utils.chiffrer import chiffrer_donnees
+from detectors.ip import detect_ip_reputation
 
 class SIEMEngine:
     """
@@ -42,6 +43,7 @@ class SIEMEngine:
                     callback(data)
                 except Exception as e:
                     # print(f"[Engine] Erreur callback {event}: {e}")
+                    pass
     
     def start(self):
         """Démarre le moteur de surveillance"""
@@ -88,8 +90,17 @@ class SIEMEngine:
                             log_line = dechiffrer_donnees(line)
                             if not log_line: continue
                             
-                            # Passer la ligne à tous les détecteurs
-                            for detector in self.detectors:
+                            # Analyse avec les détecteurs
+                            all_detectors = self.detectors + [detect_ip_reputation]
+                            
+                            for detector in all_detectors:
+                                # Optimisation pour l'API AbuseIPDB
+                                if detector == detect_ip_reputation:
+                                    # Ici on n'a pas forcément le score ML dans core/engine de la même manière
+                                    # mais on peut envisager de l'ajouter plus tard. 
+                                    # Pour l'instant on le laisse en dernier pour économiser.
+                                    pass
+                                
                                 found, pattern, attack_type = detector(log_line)
                                 
                                 if found:
@@ -108,6 +119,7 @@ class SIEMEngine:
                                     break
                         except Exception as e:
                             # print(f"[Engine] Erreur ligne: {e}")
+                            pass
                             
 
                     
