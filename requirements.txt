@@ -1,22 +1,19 @@
 # SIEM Professionnel - Requirements
 # Installation: pip install -r requirements.txt
 
-# Web Framework & API
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-websockets==12.0
+# Interface Graphique (GUI) & Cartographie
+PySide6>=6.6.0
+folium>=0.15.0
 
-# Machine Learning
-scikit-learn==1.3.2
-pandas==2.1.3
-numpy==1.26.2
+# Intelligence Artificielle (Détection d'Anomalies)
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.1.0
 
-# Honeypot SSH
-paramiko==3.4.0
+# Géolocalisation & Sécurité
+geoip2>=4.7.0
+cryptography>=41.0.0
+python-dotenv>=1.0.0
 
-# Utilities
-requests==2.31.0
-pyyaml==6.0.1
-
-# PySide6 (GUI backup - optionnel, commenté car problème d'installation)
-# PySide6==6.6.1
+# Utilitaires
+requests>=2.31.0
