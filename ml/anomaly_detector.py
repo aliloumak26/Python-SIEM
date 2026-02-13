@@ -167,8 +167,8 @@ class AnomalyDetector:
             # Calibration ÉQUILIBRÉE pour le SIEM
             # decision_function: > 0 normal, < 0 anomalie
             # On utilise une sigmoïde centrée sur 0.0 (seuil naturel de Isolation Forest)
-            # Une pente de 10 donne un score de ~0.3 pour DF=0.1 et ~0.7 pour DF=-0.1
-            score = 1.0 / (1.0 + np.exp(decision_func * 10))
+            # Une pente de 15 (au lieu de 10) pour des scores plus nets
+            score = 1.0 / (1.0 + np.exp(decision_func * 15))
             
             # On vérifie si un pattern critique a été détecté (indices 4, 5, 6, 7, 8 dans extract_features)
             # 4: SQL, 5: XSS/HTML, 6: Traversal, 7: RCE, 8: NoSQL

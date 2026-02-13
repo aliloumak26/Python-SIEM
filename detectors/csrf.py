@@ -6,9 +6,9 @@ def detect(log_line):
     sensitive_methods = ["post", "put", "delete"]
     matches = []
 
-    method_match = re.search(r'"(post|put|delete)\s+([^\s]+)', line)
+    method_match = re.search(r'(?:"?)(post|put|delete)(?:"?)\s+([^\s]+)', line)
     if method_match:
-        method = method_match.group(1)
+        method = method_match.group(1).lower()
         endpoint = method_match.group(2)
 
         if "csrf_token=missing" in line or "csrf=absent" in line:

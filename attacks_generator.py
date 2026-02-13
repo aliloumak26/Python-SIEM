@@ -37,7 +37,22 @@ SIGNATURE_PAYLOADS = {
     ],
     "NoSQL Injection": [
         '{"$gt": ""}', '{"$ne": null}', '{"$where": "this.password.length > 0"}',
-        '{"$regex": ".*"}'
+        '{"$regex": ".*"}', '{"username": {"$in": ["admin", "root"]}}'
+    ],
+    "CRLF Injection": [
+        "%0d%0aSet-Cookie:session=malicious", "%0aLocation: http://evil.com",
+        "\\r\\nContent-Length: 0", "%0d%0a%0d%0a<script>alert(1)</script>"
+    ],
+    "CSRF Attack": [
+        "referer=absent", "csrf_token=missing", "referer=http://malicious-site.com"
+    ],
+    "HTTP Scanner": [
+        "sqlmap/1.4.11", "Nikto/2.1.6", "Nmap Scripting Engine",
+        "DirBuster-1.0-RC1", "Go-http-client/1.1", "Wget/1.20.3"
+    ],
+    "File Upload": [
+        "shell.php", "backdoor.phtml", "virus.exe", "script.sh",
+        "image.jpg.php", "payload.jsp"
     ]
 }
 
@@ -56,6 +71,28 @@ BEHAVIORAL_PAYLOADS = {
         "<math><mi//onfocusin=confirm(1) tabindex=1>AUTO_FOCUS_TEST" + "<!-- " + "A" * 150 + " -->",
         "<body/onpageshow=prompt(1)>" + " <!-- " + "B" * 150 + " -->",
         "<details/open/onmousemove=confirm(1)>MOVEMOUSE" + " <!-- " + "C" * 150 + " -->"
+    ],
+    "High Entropy (ML)": [
+        "".join([random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+=-") for _ in range(256)]),
+        "K" * 100 + "!" * 50 + "Z" * 100 + "???" + "A" * 50,
+        "aB1!cC2@dD3#eE4$fF5%gG6^hH7&iI8*jJ9(kK0)" * 10
+    ],
+    "Unicode/Hex (ML)": [
+        "%u003c%u0073%u0063%u0072%u0069%u0070%u0074%u003e",
+        "\\x41\\x42\\x43\\x44" * 40,
+        "ðŸ˜ŠðŸ”¥ðŸš€" * 20 + "!!@@" + "Â©Â®â„¢" * 10,
+        "%E2%9C%94%E2%9C%96%E2%9C%98" * 15
+    ],
+    "Massive Payload (ML)": [
+        "A" * 500,
+        "data:text/plain;base64," + "V" * 300,
+        "{" + ",".join([f'"key{i}":"{"X"*20}"' for i in range(20)]) + "}"
+    ],
+    "Pure Anomaly (AI)": [
+        "!".join([str(random.random()) for _ in range(50)]),
+        " ".join(["%{:02x}".format(random.randint(128, 255)) for _ in range(100)]),
+        "LONG_" + "VERY_" * 100 + "PAYLOAD",
+        "???" + "!!! " * 50 + "%%%"
     ],
     "RCE Bypass": [
         "$(printf '\\167\\150\\157\\141\\155\\151' | /usr/bin/env base64 -d)" + " # " + "R" * 150,
@@ -85,7 +122,7 @@ def generate_random_ip():
     ]
     # IPs de test spécifiques fournies par l'utilisateur
     test_ips = ["64.225.66.74", "91.224.92.54", "45.92.1.86", "124.163.255.210", "190.184.222.63"]
-    if random.random() < 0.3: # 30% de chance d'utiliser une IP de test
+    if random.random() <= 0.5: # 30% de chance d'utiliser une IP de test
         return random.choice(test_ips)
     
     return f"{random.choice(prefixes)}{random.randint(1,254)}.{random.randint(1,254)}"
@@ -144,10 +181,50 @@ def generate_log_entry(attack_type, payload):
         body = f' body:{{"username":"admin","password":"{pass_attempt}"}}'
         status = 401
     
+    elif attack_type == "CRLF Injection":
+        path = f"/redirect?url=http://safe.com{payload}"
+    
+    elif attack_type == "CSRF Attack":
+        method = random.choice(["POST", "PUT", "DELETE"])
+        path = f"/api/user/settings"
+        if "referer=http" in payload:
+            body = f' body:{{"email":"hacker@evil.com"}} referer="http://malicious-site.com"'
+        elif "missing" in payload:
+            body = f' body:{{"email":"hacker@evil.com"}} csrf=absent'
+        else:
+            body = f' body:{{"email":"hacker@evil.com"}} referer="-"'
+
+    elif attack_type == "HTTP Scanner":
+        method = random.choice(["GET", "PUT", "DELETE", "OPTIONS", "TRACE"])
+        path = random.choice(["/admin", "/.env", "/config", "/shell", "/phpmyadmin"])
+        body = f' User-Agent: "{payload}"'
+        status = random.choice([403, 404, 200])
+
+    elif attack_type == "File Upload":
+        method = "POST"
+        path = "/api/upload"
+        body = f' body:{{ "filename": "{payload}", "content-type": "image/jpeg" }}'
+
     elif attack_type == "Logic/Structure":
         method = random.choice(["POST", "PUT", "PATCH"])
         path = f"/api/v2/{random.choice(['update', 'sync', 'patch', 'internal'])}"
         body = f' body:{payload}'
+
+    elif "ML" in attack_type:
+        method = random.choice(["POST", "PUT"])
+        path = f"/api/v1/{random.choice(['data', 'metrics', 'config'])}"
+        if "Massive" in attack_type:
+            body = f' body:{{"content":"{payload}"}}'
+        else:
+            path += f"?token={payload}"
+            body = f' body:{{"debug":true}}'
+        status = 400 # Souvent rejeté par le serveur car "bizarre"
+
+    elif "Anomaly" in attack_type:
+        method = "POST"
+        path = "/api/v1/anomaly_test"
+        body = f' body:{{"data":"{payload}"}}'
+        status = 403
 
     duration = f"{random.randint(10, 500)}ms"
     return f"{timestamp}  {ip}  {method} {path}{body}  {status}  {duration}\n"
@@ -180,11 +257,11 @@ class AttackGenerator:
         return self.running
     
     def _run_loop(self):
-        # Liste pondérée : 50% Signatures / 40% Behavioral / 10% Normal
+        # Configuration spéciale Présentation : Priorité à l'IA (80% ML / 10% Signatures / 10% Normal)
         attack_categories = [
-            "SIGNATURE", "SIGNATURE", "SIGNATURE", "SIGNATURE", "SIGNATURE",
+            "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", 
             "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL",
-            "NORMAL"
+            "SIGNATURE", "NORMAL"
         ]
         
         while self.running:
@@ -194,15 +271,29 @@ class AttackGenerator:
                 payload = ""
                 
                 if category == "SIGNATURE":
-                    atype = random.choice(list(SIGNATURE_PAYLOADS.keys()) + ["Brute Force"])
-                    if atype == "Brute Force":
+                    # On réduit la probabilité de Brute Force (cadence réduite)
+                    if random.random() < 0.15: # Seulement 15% de chance si on est en SIGNATURE
                         self._perform_brute_force_burst()
-                        time.sleep(self.sleep_interval)
+                        time.sleep(self.sleep_interval * 2)
                         continue
-                    payload = random.choice(SIGNATURE_PAYLOADS[atype])
+                    
+                    # On évite que HTTP Scanner sorte trop souvent
+                    available_types = [t for t in SIGNATURE_PAYLOADS.keys()]
+                    # Réduction drastique (90%) pour 'HTTP Scanner'
+                    if "HTTP Scanner" in available_types and random.random() < 0.9:
+                        available_types = [t for t in available_types if t != "HTTP Scanner"]
+                    
+                    atype = random.choice(available_types if available_types else ["SQL Injection"])
+                    payload = random.choice(SIGNATURE_PAYLOADS.get(atype, SIGNATURE_PAYLOADS["SQL Injection"]))
                 
                 elif category == "BEHAVIORAL":
-                    atype = random.choice(list(BEHAVIORAL_PAYLOADS.keys()))
+                    # Priorité aux nouvelles catégories ML pour la présentation
+                    ml_types = [t for t in BEHAVIORAL_PAYLOADS.keys() if "(ML)" in t or "(AI)" in t]
+                    if ml_types and random.random() < 0.9: # 90% de chance d'avoir du pur ML
+                        atype = random.choice(ml_types)
+                    else:
+                        atype = random.choice(list(BEHAVIORAL_PAYLOADS.keys()))
+                    
                     payload = random.choice(BEHAVIORAL_PAYLOADS[atype])
                 
                 else: # NORMAL

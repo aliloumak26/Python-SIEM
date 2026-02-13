@@ -24,7 +24,10 @@ from detectors.bruteforce import detect as detect_bruteforce
 from detectors.csrf import detect as detect_csrf
 from detectors.file_upload import detect as detect_file_upload
 from detectors.os_injection import detect as detect_os_injection
+from detectors.traversal import detect as detect_traversal
+from detectors.nosql import detect as detect_nosql
 from detectors.crlf import detect as detect_crlf
+from detectors.HTTP import detect as detect_http
 from detectors.ip import detect_ip_reputation
 
 # ML Anomaly Detector
@@ -36,7 +39,11 @@ import io
 from geo_finder import get_ip_info
 from PySide6.QtCharts import QChart, QChartView, QPieSeries, QPieSlice
 
-DETECTORS = [detect_sqli, detect_xss, detect_bruteforce, detect_csrf, detect_file_upload, detect_os_injection, detect_crlf, detect_ip_reputation]
+DETECTORS = [
+    detect_sqli, detect_xss, detect_bruteforce, detect_csrf, 
+    detect_file_upload, detect_os_injection, detect_crlf, 
+    detect_http, detect_traversal, detect_nosql, detect_ip_reputation
+]
 
 
 # =====================================================================
@@ -378,6 +385,12 @@ class ModernSIEM(QtWidgets.QMainWindow):
             "Brute Force": 0,
             "ML Anomaly": 0,
             "Malicious IP": 0,
+            "CSRF": 0,
+            "File Upload": 0,
+            "Path Traversal": 0,
+            "NoSQL Injection": 0,
+            "CRLF Injection": 0,
+            "HTTP Scanner": 0,
             "Others": 0,
             "Total": 0
         }
@@ -475,7 +488,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
         control_layout.addWidget(filter_label)
 
         self.filter_box = QtWidgets.QComboBox()
-        self.filter_box.addItems(["Toutes", "SQL Injection", "XSS", "Brute Force", "ML Anomaly", "Malicious IP", "CSRF", "File Upload", "OS Injection", "CRLF"])
+        self.filter_box.addItems(["Toutes", "SQL Injection", "XSS", "Brute Force", "ML Anomaly", "Malicious IP", "CSRF", "File Upload", "OS Injection", "CRLF", "HTTP Scanner"])
         self.filter_box.currentTextChanged.connect(self.apply_filter)
         control_layout.addWidget(self.filter_box)
         
@@ -637,11 +650,16 @@ class ModernSIEM(QtWidgets.QMainWindow):
             card._count.setText(str(value))
             card._pct.setText(f"{pct}%")
 
-        # Unification des clés pour supporter les variantes de casse
+        # Unification des clés pour supporter les variantes de casse et nouveaux types
         sqli = stats.get("SQL Injection", 0)
-        xss = stats.get("XSS", 0) + stats.get("XSS injection", 0)
+        xss = stats.get("XSS", 0) + stats.get("XSS Injection", 0)
         brute = stats.get("Brute Force", 0)
         ml = stats.get("ML Anomaly", 0)
+        csrf = stats.get("CSRF Attack", 0) + stats.get("CSRF", 0)
+        traversal = stats.get("Path Traversal", 0)
+        nosql = stats.get("NoSQL Injection", 0)
+        crlf = stats.get("CRLF Injection", 0)
+        http = stats.get("HTTP Scanner", 0)
 
         update(self.card_sqli, sqli)
         update(self.card_xss, xss)
@@ -756,7 +774,17 @@ class ModernSIEM(QtWidgets.QMainWindow):
             elif a["type"] == "ML Anomaly":
                 type_item.setForeground(QtGui.QColor("#8b5cf6"))
             elif a["type"] == "Malicious IP":
-                type_item.setForeground(QtGui.QColor("#ec4899"))  # Rose/Pink pour IP malveillante
+                type_item.setForeground(QtGui.QColor("#ec4899"))
+            elif a["type"] in ["CSRF Attack", "Cross-Site Request Forgery"]:
+                type_item.setForeground(QtGui.QColor("#10b981")) # Vert émeraude
+            elif a["type"] == "Path Traversal":
+                type_item.setForeground(QtGui.QColor("#8b5cf6")) # Violet
+            elif a["type"] == "NoSQL Injection":
+                type_item.setForeground(QtGui.QColor("#fbbf24")) # Ambre
+            elif a["type"] == "CRLF Injection":
+                type_item.setForeground(QtGui.QColor("#6366f1")) # Indigo
+            elif a["type"] == "HTTP Scanner":
+                type_item.setForeground(QtGui.QColor("#14b8a6")) # Teal
             else:
                 type_item.setForeground(QtGui.QColor("#6b7280"))
             self.table.setItem(row, 1, type_item)
@@ -927,8 +955,8 @@ class ModernSIEM(QtWidgets.QMainWindow):
                                     pattern = str(details[0]) if details else "Pattern inconnu"
                                     break
                             
-                            # Si attaque détectée ou anomalie ML forte (> 0.60)
-                            if attack_found or (ml_is_anomaly and ml_score > 0.60):
+                            # Si attaque détectée ou anomalie ML (> 0.50)
+                            if attack_found or (ml_is_anomaly and ml_score > 0.50):
                                 alert = {
                                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                     "type": attack_type if attack_found else "ML Anomaly",

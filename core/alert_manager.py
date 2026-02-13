@@ -3,7 +3,7 @@ import datetime
 import re
 from config.settings import settings
 from core.database import Database
-from utils.geoip import GeoIPLocator
+from geo_finder import get_ip_info
 from utils.chiffrer import chiffrer_donnees
 
 class AlertManager:
@@ -12,7 +12,7 @@ class AlertManager:
     def __init__(self):
         self.alert_log_path = settings.ALERTS_LOG_PATH
         self.db = Database()
-        self.geoip = GeoIPLocator()
+        # On utilise maintenant geo_finder (local mmdb)
         
         # Créer le fichier de log si nécessaire
         if not os.path.exists(self.alert_log_path):
@@ -71,7 +71,7 @@ class AlertManager:
         # Géolocalisation
         geo_data = None
         if source_ip != 'unknown':
-            geo_data = self.geoip.locate(source_ip)
+            geo_data = get_ip_info(source_ip)
         
         # Calcul de sévérité
         severity = self.calculate_severity(attack_type, pattern)

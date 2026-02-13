@@ -177,8 +177,8 @@ def main():
     # 2. Entraîner le modèle
     # print("\n[2/4] Entraînement du détecteur d'anomalies (Isolation Forest + Scaler)...")
     detector = AnomalyDetector()
-    # Contamination faible (0.5%) car nos logs générés sont "purs"
-    detector.train(train_normal, contamination=0.005)
+    # Contamination (1%)
+    detector.train(train_normal, contamination=0.01)
     
     # 3. Évaluation précise
     # print("\n[3/4] Évaluation de la précision du modèle...")
@@ -217,11 +217,11 @@ def main():
     # print("RÉSUMÉ FINAL")
     # print("=" * 60)
     if tp_rate > 95 and fp_rate < 5:
-        # print("  ÉVALUATION: EXCELLENTE")
+        print("  ÉVALUATION: EXCELLENTE")
     elif tp_rate > 80 and fp_rate < 10:
-        # print("  ÉVALUATION: BONNE")
+        print("  ÉVALUATION: BONNE")
     else:
-        # print("  ÉVALUATION: À AMÉLIORER")
+        print("  ÉVALUATION: À AMÉLIORER")
         
     # print(f"\n✓ Entraînement terminé avec succès!")
     # print("=" * 60)
