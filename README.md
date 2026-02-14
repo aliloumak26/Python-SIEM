@@ -9,11 +9,6 @@
 - Feature extraction sophistiquée (entropie, patterns, caractères spéciaux)
 - Scoring de confiance pour chaque alerte
 
-### 🍯 Honeypots Intégrés
-- **SSH Honeypot** (port 2222) - Capture les tentatives de connexion
-- **HTTP Honeypot** (port 8888) - Simule des endpoints vulnérables
-- Logging automatique dans la base de données
-
 ### 🖥️ Interface GUI (PySide6) - **RECOMMANDÉ**
 - **Dashboard temps réel** avec thème sombre premium
 - **Scroll complet** de la page pour une vue d'ensemble
@@ -33,16 +28,15 @@
 - Statistiques agrégées
 - Export CSV/JSON
 
+## 🚀 Quick Start
+> **New to the project?** Check out [QUICKSTART.md](QUICKSTART.md) for a complete guide.
+
 ## 📦 Installation
-
 ```bash
-# Cloner le projet
-cd SIEM
-
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
 
-# Entraîner le modèle ML (première fois)
+# Train ML Model
 python ml/train.py
 ```
 
@@ -67,22 +61,11 @@ Le système démarrera alors le dashboard web (http://localhost:8000).
 python attacks_generator.py
 ```
 
-### Tester le honeypot SSH
-```bash
-ssh root@localhost -p 2222
-```
-
-### Tester le honeypot HTTP
-```bash
-curl http://localhost:8888
-```
-
 ## 📊 Endpoints API
 
 - `GET /` - Dashboard web
 - `GET /api/stats` - Statistiques globales
 - `GET /api/alerts?limit=100` - Alertes récentes
-- `GET /api/honeypot` - Logs honeypot
 - `GET /api/export/alerts?format=json` - Export
 - `WS /ws` - WebSocket temps réel
 
@@ -103,8 +86,6 @@ SIEM/
 ├── ml/                     # Machine Learning
 │   ├── anomaly_detector.py
 │   └── train.py
-├── honeypot/              # Honeypots
-│   └── ssh_honeypot.py
 ├── web/                   # Interface web
 │   ├── index.html
 │   └── assets/
@@ -135,6 +116,3 @@ SIEM/
 - Ne pas utiliser sur des systèmes/réseaux sans autorisation
 - Les honeypots doivent être déployés dans un environnement contrôlé
 - Ne collecte que des métadonnées (IP, timestamp, patterns)
-
-
-

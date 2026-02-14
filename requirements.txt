@@ -8,7 +8,7 @@ folium>=0.15.0
 # Intelligence Artificielle (Détection d'Anomalies)
 scikit-learn>=1.3.0
 numpy>=1.24.0
-pandas>=2.1.0
+
 
 # Géolocalisation & Sécurité
 geoip2>=4.7.0
