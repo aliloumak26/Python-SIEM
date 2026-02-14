@@ -47,11 +47,6 @@ python ml/train.py
 python dashboard_gui.py
 ```
 
-### Version Web (Legacy)
-```bash
-python main.py
-```
-Le système démarrera alors le dashboard web (http://localhost:8000).
 
 ## 🧪 Test
 
@@ -82,22 +77,25 @@ SIEM/
 ├── detectors/              # Détecteurs d'attaques
 │   ├── sqli.py
 │   ├── xss.py
-│   └── bruteforce.py
+│   ├── bruteforce.py
+│   ├── csrf.py
+│   ├── file_upload.py
+│   ├── os_injection.py
+│   ├── traversal.py
+│   ├── nosql.py
+│   ├── crlf.py
+│   ├── http.py
+│   └── ip_reputation.py
 ├── ml/                     # Machine Learning
 │   ├── anomaly_detector.py
-│   └── train.py
-├── web/                   # Interface web
-│   ├── index.html
-│   └── assets/
-│       ├── css/style.css
-│       └── js/app.js
+│   └──train.py
 ├── utils/                 # Utilitaires
-│   ├── geoip.py
+│   ├── chifrer.py
+│   ├── dechifrer.py
 │   └── normalize.py
 ├── config/
 │   └── settings.py
 ├── dashboard_gui.py       # Interface principale PySide6
-├── main.py                # Lanceur version Web (Legacy)
 └── requirements.txt
 ```
 
