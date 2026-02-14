@@ -9,10 +9,6 @@
 - Feature extraction sophistiquée (entropie, patterns, caractères spéciaux)
 - Scoring de confiance pour chaque alerte
 
-### 🍯 Honeypots Intégrés
-- **SSH Honeypot** (port 2222) - Capture les tentatives de connexion
-- **HTTP Honeypot** (port 8888) - Simule des endpoints vulnérables
-- Logging automatique dans la base de données
 
 ### 🌐 Interface Web Moderne
 - **Dashboard temps réel** avec WebSocket
@@ -54,9 +50,8 @@ python main.py
 
 Le système va démarrer:
 1. ✅ Moteur SIEM (surveillance des logs)
-2. ✅ Honeypots SSH (port 2222) et HTTP (port 8888)
-3. ✅ API FastAPI + WebSocket
-4. ✅ Dashboard web (http://localhost:8000)
+2. ✅ API FastAPI + WebSocket
+3. ✅ Dashboard web (http://localhost:8000)
 
 ## 🧪 Test
 
@@ -66,22 +61,12 @@ Le système va démarrer:
 python attacks-generator.py
 ```
 
-### Tester le honeypot SSH
-```bash
-ssh root@localhost -p 2222
-```
-
-### Tester le honeypot HTTP
-```bash
-curl http://localhost:8888
-```
 
 ## 📊 Endpoints API
 
 - `GET /` - Dashboard web
 - `GET /api/stats` - Statistiques globales
 - `GET /api/alerts?limit=100` - Alertes récentes
-- `GET /api/honeypot` - Logs honeypot
 - `GET /api/export/alerts?format=json` - Export
 - `WS /ws` - WebSocket temps réel
 
@@ -102,8 +87,6 @@ SIEM/
 ├── ml/                     # Machine Learning
 │   ├── anomaly_detector.py
 │   └── train.py
-├── honeypot/              # Honeypots
-│   └── ssh_honeypot.py
 ├── web/                   # Interface web
 │   ├── index.html
 │   └── assets/
