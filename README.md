@@ -161,7 +161,7 @@ The `.env` file at the project root contains the following variables:
 |------------------|----------------------------------------------------|:--------:|
 | `FERNET_KEY`     | Fernet encryption key (base64, 32 bytes)           | Yes      |
 | `CHIFFRED_PATH`  | Path to the encrypted log file                     | No       |
-| `API_KEY`        | AbuseIPDB API key for IP reputation                | No       |
+| `API_KEY`        | AbuseIPDB API key for IP reputation                | Yes      |
 
 To generate a Fernet key:
 
