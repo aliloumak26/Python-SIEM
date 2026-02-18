@@ -243,7 +243,7 @@ This mechanism ensures the confidentiality of logs stored on disk, even in the e
 Source IP geolocation relies on two components:
 
 1. **GeoLite2-City** (MaxMind): local database (`data/GeoLite2-City.mmdb`) providing the country, city, and GPS coordinates for each IP. A slight jitter is applied to coordinates to prevent visual stacking on the map.
-
+![Geo ip map pic ](img_for_rdme/geoip.png)
 2. **AbuseIPDB** (API): external IP reputation service. The confidence score (0-100%) is compared against a configurable threshold (default: 50%). A one-hour local cache prevents redundant API calls.
 
 ---
