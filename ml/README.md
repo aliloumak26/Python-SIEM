@@ -1,4 +1,4 @@
-# Machine Learning Module -- Anomaly Detection
+# Machine Learning Module --- Anomaly Detection
 
 Artificial Intelligence-based anomaly detection module integrated into the SIEM. This module uses the **Isolation Forest** algorithm from scikit-learn to identify suspicious HTTP requests that evade signature-based (RegEx) detectors.
 
