@@ -6,7 +6,7 @@ def normalize(text: str) -> str:
         return ""
     try:
         decoded = unquote(text)
-        decoded =unquote(decoded)  # Pour double encodage 
+        decoded =unquote(decoded)   # Pour double encodage 
         decoded = html.unescape(decoded) 
         decoded = decoded.encode('utf-8').decode('unicode_escape')
         decoded = decoded.replace('\\"', '"').replace("\\'", "'")
