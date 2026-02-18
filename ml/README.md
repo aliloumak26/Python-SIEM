@@ -21,7 +21,7 @@ Artificial Intelligence-based anomaly detection module integrated into the SIEM.
 
 The approach relies on unsupervised learning: the model is trained exclusively on **normal** (legitimate) HTTP traffic. Once trained, it can detect requests that deviate significantly from this normal profile, classifying them as anomalies.
 
-This principle enables detection of:
+This principle enables detection of :
 - Obfuscated attacks that bypass classic RegEx patterns
 - Zero-day attacks with no known signature
 - High-entropy payloads (unusual encodings, binary data)
