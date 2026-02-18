@@ -37,7 +37,7 @@ class AlertManager:
             'Brute Force': 'medium',
             'HTTP Error': 'low'
         }
-        
+
         return severity_map.get(attack_type, 'medium')
     
     def extract_ip(self, line: str) -> str:
@@ -104,7 +104,7 @@ class AlertManager:
     
     def print_alert(self, attack_type: str, pattern: str, line: str):
         """Affiche une alerte (pour debug)"""
-        # print("⚠️ ALERT ⚠️")
+        # print("⚠️ ALERT  ⚠️")
         # print(f"Type    : {attack_type}")
         # print(f"Pattern : {pattern}")
         # print(f"Line    : {line.strip()}")
