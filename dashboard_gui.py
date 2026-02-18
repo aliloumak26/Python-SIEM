@@ -849,7 +849,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
             m.save(data, close_file=False)
             html_content = data.getvalue().decode()
             self.web_view.setHtml(html_content)
-            print(f"[MAP] Mise à jour effectuée avec {len(self.alert_coords)} marqueurs")
+            # print(f\"[MAP] Mise à jour effectuée avec {len(self.alert_coords)} marqueurs\")
         except Exception as e:
             print(f"[MAP ERROR] {e}")
 
@@ -985,7 +985,7 @@ class ModernSIEM(QtWidgets.QMainWindow):
                                 self.signals.new_alert.emit(alert)
                                 self.signals.stats_changed.emit(self.stats)
                                 
-                                print(f"[GEO] Alerte: {alert['type']} depuis {geo_info['country']}{city_str} ({ip_addr}) bloquée")
+                                # print(f\"[GEO] Alerte: {alert['type']} depuis {geo_info['country']}{city_str} ({ip_addr}) bloquée\")
                                     
                         except Exception as e:
                             print(f"[Watcher] Erreur déchiffrement: {e}")

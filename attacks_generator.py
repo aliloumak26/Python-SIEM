@@ -257,12 +257,8 @@ class AttackGenerator:
         return self.running
     
     def _run_loop(self):
-        # Configuration spéciale Présentation : Priorité à l'IA (80% ML / 10% Signatures / 10% Normal)
-        attack_categories = [
-            "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", 
-            "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL", "BEHAVIORAL",
-            "SIGNATURE", "NORMAL"
-        ]
+        # Configuration équilibrée : Probabilités égales pour chaque catégorie
+        attack_categories = ["BEHAVIORAL", "SIGNATURE", "NORMAL"]
         
         while self.running:
             try:
@@ -271,29 +267,20 @@ class AttackGenerator:
                 payload = ""
                 
                 if category == "SIGNATURE":
-                    # On réduit la probabilité de Brute Force (cadence réduite)
-                    if random.random() < 0.15: # Seulement 15% de chance si on est en SIGNATURE
+                    # On retire la réduction de probabilité pour Brute Force
+                    if random.random() < 0.33: # 1/3 de chance si on est en SIGNATURE
                         self._perform_brute_force_burst()
                         time.sleep(self.sleep_interval * 2)
                         continue
                     
-                    # On évite que HTTP Scanner sorte trop souvent
-                    available_types = [t for t in SIGNATURE_PAYLOADS.keys()]
-                    # Réduction drastique (90%) pour 'HTTP Scanner'
-                    if "HTTP Scanner" in available_types and random.random() < 0.9:
-                        available_types = [t for t in available_types if t != "HTTP Scanner"]
-                    
-                    atype = random.choice(available_types if available_types else ["SQL Injection"])
-                    payload = random.choice(SIGNATURE_PAYLOADS.get(atype, SIGNATURE_PAYLOADS["SQL Injection"]))
+                    # On retire la restriction sur HTTP Scanner
+                    available_types = list(SIGNATURE_PAYLOADS.keys())
+                    atype = random.choice(available_types)
+                    payload = random.choice(SIGNATURE_PAYLOADS[atype])
                 
                 elif category == "BEHAVIORAL":
-                    # Priorité aux nouvelles catégories ML pour la présentation
-                    ml_types = [t for t in BEHAVIORAL_PAYLOADS.keys() if "(ML)" in t or "(AI)" in t]
-                    if ml_types and random.random() < 0.9: # 90% de chance d'avoir du pur ML
-                        atype = random.choice(ml_types)
-                    else:
-                        atype = random.choice(list(BEHAVIORAL_PAYLOADS.keys()))
-                    
+                    # On retire la priorité IA pure pour que tout soit équitable
+                    atype = random.choice(list(BEHAVIORAL_PAYLOADS.keys()))
                     payload = random.choice(BEHAVIORAL_PAYLOADS[atype])
                 
                 else: # NORMAL
